@@ -129,5 +129,6 @@ This extension contributes the following settings:
 ## Release Workflow
 
 - Merge conventional commits into `main` using prefixes such as `feat:`, `fix:`, and `feat!:` for breaking changes.
-- GitHub Actions opens or updates a release PR through `release-please`.
+- GitHub Actions opens or updates a release PR through `release-please` only after the `Test and Lint` workflow in [.github/workflows/test.yml](/c:/Users/editing/Desktop/coding/extensions/nestforge/.github/workflows/test.yml#L1) passes for `main`.
 - Merging that release PR updates `package.json`, `CHANGELOG.md`, and the version marker in this README before creating the GitHub release.
+- The workflow uses the repository `GITHUB_TOKEN`, so GitHub repository settings must allow Actions to create pull requests.
