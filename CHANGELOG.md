@@ -19,12 +19,12 @@ All notable changes to the "nestforge" extension will be documented in this file
 
 ## [Unreleased]
 
-- Updated the README to document the NestForge Toolkit command surface, generator wizard, context menus, DB dashboard, settings, and walkthrough support.
+- Updated the README to document the NestForge command surface, generator wizard, context menus, DB dashboard, settings, and walkthrough support.
 - Added GitHub Actions CI and release automation so conventional commits can drive version bumps, changelog updates, and README version sync.
 
 ## [0.0.1]
 
-- Added NestForge Toolkit command palette workflows for scaffolding, generators, database operations, OpenAPI docs, and Rust formatting.
+- Added NestForge command palette workflows for scaffolding, generators, database operations, OpenAPI docs, and Rust formatting.
 - Added Explorer context actions for module-aware resource generation.
 - Added `NestForge Logs` output channel integration and progress notifications for long-running operations.
 - Added a status bar database drift indicator with polling support.

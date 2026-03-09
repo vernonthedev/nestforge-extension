@@ -1,6 +1,6 @@
-# NestForge Toolkit
+# NestForge
 
-NestForge Toolkit is a VS Code extension for driving the `nestforge` CLI from the editor. It provides guided scaffolding, generator workflows, database operations, Rust utility commands, onboarding, and workspace-aware context menus for NestForge projects.
+NestForge is a VS Code extension for driving the `nestforge` CLI from the editor. It provides guided scaffolding, generator workflows, database operations, Rust utility commands, onboarding, and workspace-aware context menus for NestForge projects.
 
 ## Current Release
 

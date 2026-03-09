@@ -444,7 +444,7 @@ class NestForgeExtension {
 			: vscode.workspace.workspaceFolders?.[0];
 
 		if (!folder) {
-			vscode.window.showWarningMessage('Open a workspace folder to use NestForge Toolkit.');
+			vscode.window.showWarningMessage('Open a workspace folder to use NestForge.');
 			return undefined;
 		}
 

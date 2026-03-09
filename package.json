@@ -1,7 +1,7 @@
 {
   "name": "nestforge",
-  "displayName": "NestForge Toolkit",
-  "description": "VS Code toolkit for NestForge CLI scaffolding, generators, database workflows, and Rust utility commands.",
+  "displayName": "NestForge",
+  "description": "VS Code extension for NestForge CLI scaffolding, generators, database workflows, and Rust utility commands.",
   "version": "0.1.0",
   "author": "vernonthedev",
   "license": "MIT",
@@ -98,7 +98,7 @@
       ]
     },
     "configuration": {
-      "title": "NestForge Toolkit",
+      "title": "NestForge",
       "properties": {
         "nestforge.cliPath": {
           "type": "string",
@@ -131,7 +131,7 @@
     "walkthroughs": [
       {
         "id": "nestforge.gettingStarted",
-        "title": "NestForge Toolkit",
+        "title": "NestForge",
         "description": "Bootstrap a NestForge workspace, generate resources, and manage database drift from VS Code.",
         "steps": [
           {
