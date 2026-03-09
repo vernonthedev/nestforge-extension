@@ -2,6 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { CliManager } from './cli-manager';
+import { classifyDbStatusOutput, fileExists, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from './nestforge-core';
 import { registerOnboarding } from './onboarding';
 
 type GeneratorCategory = 'Core' | 'Cross-Cutting' | 'Transport';
@@ -233,7 +234,7 @@ class NestForgeExtension {
 
 		if (subcommand === 'migrate') {
 			const envPath = path.join(workspacePath, '.env');
-			const hasEnvFile = await this.fileExists(envPath);
+			const hasEnvFile = await fileExists(envPath);
 			if (!hasEnvFile) {
 				vscode.window.showWarningMessage('Database migration requires a .env file in the workspace root.');
 				return;
@@ -279,8 +280,8 @@ class NestForgeExtension {
 				},
 			);
 
-			const output = `${result.stdout}\n${result.stderr}`.toLowerCase();
-			if (/\b(drift|out of sync|pending|diverged|not up to date)\b/.test(output)) {
+			const statusKind = classifyDbStatusOutput(`${result.stdout}\n${result.stderr}`);
+			if (statusKind === 'warning') {
 				this.setDbStatus({
 					kind: 'warning',
 					text: 'NestForge DB Drift',
@@ -292,7 +293,7 @@ class NestForgeExtension {
 				return;
 			}
 
-			if (/\b(in sync|up to date|healthy|no drift|ok)\b/.test(output)) {
+			if (statusKind === 'healthy') {
 				this.setDbStatus({
 					kind: 'healthy',
 					text: 'NestForge DB OK',
@@ -434,42 +435,7 @@ class NestForgeExtension {
 	}
 
 	private async findModuleCandidates(workspacePath: string): Promise<string[]> {
-		const sourceRoot = path.join(workspacePath, 'src');
-		const root = await this.fileExists(sourceRoot) ? sourceRoot : workspacePath;
-		const candidates = new Set<string>();
-
-		const visit = async (currentPath: string, depth: number): Promise<void> => {
-			if (depth > 3) {
-				return;
-			}
-
-			const entries = await fs.readdir(currentPath, { withFileTypes: true });
-			for (const entry of entries) {
-				if (entry.name.startsWith('.')) {
-					continue;
-				}
-
-				const entryPath = path.join(currentPath, entry.name);
-				if (entry.isDirectory()) {
-					candidates.add(entry.name);
-					await visit(entryPath, depth + 1);
-					continue;
-				}
-
-				const match = entry.name.match(/^(.*)\.module\.(?:ts|js|rs)$/);
-				if (match?.[1]) {
-					candidates.add(match[1]);
-				}
-			}
-		};
-
-		try {
-			await visit(root, 0);
-		} catch {
-			return [];
-		}
-
-		return [...candidates].sort((left, right) => left.localeCompare(right));
+		return findModuleCandidatesInWorkspace(workspacePath);
 	}
 
 	private getWorkspacePath(uri?: vscode.Uri): string | undefined {
@@ -488,18 +454,10 @@ class NestForgeExtension {
 	private isDbStatusEnabled(): boolean {
 		return vscode.workspace.getConfiguration('nestforge').get<boolean>('dbStatus.enabled', true);
 	}
-
-	private async fileExists(targetPath: string): Promise<boolean> {
-		try {
-			await fs.access(targetPath);
-			return true;
-		} catch {
-			return false;
-		}
-	}
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+	void NESTFORGE_COMMANDS;
 	new NestForgeExtension(context).register();
 }
 

@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import * as vscode from 'vscode';
-
-type FlagValue = boolean | number | string | string[];
+import { EventEmitter } from 'node:events';
+import { buildCliArgs, type FlagValue } from './nestforge-core';
 
 export interface CliExecutionOptions {
 	cwd?: string;
@@ -23,11 +23,43 @@ interface CommandRequest {
 	flags?: Record<string, FlagValue | undefined>;
 }
 
+interface ChildProcessLike extends EventEmitter {
+	stdout: EventEmitter;
+	stderr: EventEmitter;
+}
+
+interface CliManagerDependencies {
+	outputChannelFactory: (name: string) => vscode.OutputChannel;
+	showErrorMessage: (message: string) => Thenable<string | undefined>;
+	showInformationMessage: (message: string) => Thenable<string | undefined>;
+	withProgress: typeof vscode.window.withProgress;
+	spawn: (
+		command: string,
+		args: string[],
+		options: {
+			cwd?: string;
+			shell: boolean;
+			env: NodeJS.ProcessEnv;
+		},
+	) => ChildProcessLike;
+}
+
+const defaultDependencies: CliManagerDependencies = {
+	outputChannelFactory: (name) => vscode.window.createOutputChannel(name),
+	showErrorMessage: (message) => vscode.window.showErrorMessage(message),
+	showInformationMessage: (message) => vscode.window.showInformationMessage(message),
+	withProgress: vscode.window.withProgress.bind(vscode.window),
+	spawn: (command, args, options) => spawn(command, args, options) as ChildProcessLike,
+};
+
 export class CliManager {
 	public readonly output: vscode.OutputChannel;
 
-	public constructor(private readonly configuration: vscode.WorkspaceConfiguration) {
-		this.output = vscode.window.createOutputChannel('NestForge Logs');
+	public constructor(
+		private readonly configuration: vscode.WorkspaceConfiguration,
+		private readonly dependencies: CliManagerDependencies = defaultDependencies,
+	) {
+		this.output = this.dependencies.outputChannelFactory('NestForge Logs');
 	}
 
 	public dispose(): void {
@@ -47,10 +79,10 @@ export class CliManager {
 		request: CommandRequest,
 		options: CliExecutionOptions = {},
 	): Promise<CliResult> {
-		const args = this.buildArgs(request.args, request.flags);
+		const args = buildCliArgs(request.args, request.flags);
 		const task = () => this.spawnProcess(executable, args, options.cwd, options.revealOutputOnError ?? true);
 		const result = options.progressTitle
-			? await vscode.window.withProgress(
+			? await this.dependencies.withProgress(
 				{
 					location: vscode.ProgressLocation.Notification,
 					title: options.progressTitle,
@@ -62,46 +94,16 @@ export class CliManager {
 
 		if (result.exitCode !== 0) {
 			if (!options.silent) {
-				vscode.window.showErrorMessage(`NestForge command failed: ${result.commandLine}`);
+				await this.dependencies.showErrorMessage(`NestForge command failed: ${result.commandLine}`);
 			}
 			throw new Error(result.stderr || `Command exited with code ${result.exitCode}.`);
 		}
 
 		if (options.showSuccessMessage) {
-			vscode.window.showInformationMessage(options.showSuccessMessage);
+			await this.dependencies.showInformationMessage(options.showSuccessMessage);
 		}
 
 		return result;
-	}
-
-	private buildArgs(baseArgs: string[], flags?: Record<string, FlagValue | undefined>): string[] {
-		if (!flags) {
-			return [...baseArgs];
-		}
-
-		const args = [...baseArgs];
-
-		for (const [flag, value] of Object.entries(flags)) {
-			if (value === undefined || value === false) {
-				continue;
-			}
-
-			if (value === true) {
-				args.push(`--${flag}`);
-				continue;
-			}
-
-			if (Array.isArray(value)) {
-				for (const entry of value) {
-					args.push(`--${flag}`, entry);
-				}
-				continue;
-			}
-
-			args.push(`--${flag}`, String(value));
-		}
-
-		return args;
 	}
 
 	private spawnProcess(
@@ -111,7 +113,7 @@ export class CliManager {
 		revealOutputOnError: boolean,
 	): Promise<CliResult> {
 		return new Promise((resolve, reject) => {
-			const processHandle = spawn(executable, args, {
+			const processHandle = this.dependencies.spawn(executable, args, {
 				cwd,
 				shell: true,
 				env: process.env,
