@@ -2,6 +2,19 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.6.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.5.0...nestforge-v0.6.0) (2026-03-09)
+
+
+### Features
+
+* add badges for release, license, test, and auto release in README ([24e7aa1](https://github.com/vernonthedev/nestforge-extension/commit/24e7aa1e890c059169320e46444705317fcabc26))
+
+
+### Bug Fixes
+
+* **chore:** remove Open VSX namespace bootstrap example from README & cleaned it ([fc8ee41](https://github.com/vernonthedev/nestforge-extension/commit/fc8ee41573afe3081908f901cd49b7cec08dc1a5))
+* correct vsce packaging workflow ([df1b3ad](https://github.com/vernonthedev/nestforge-extension/commit/df1b3ad2ad64210efe1ef2e046220d6b4d2e2cff))
+
 ## [0.5.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.4.0...nestforge-v0.5.0) (2026-03-09)
 
 
