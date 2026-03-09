@@ -2,6 +2,13 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.6.1](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.6.0...nestforge-v0.6.1) (2026-03-09)
+
+
+### Bug Fixes
+
+* gate openvsx publish until namespace is ready ([726e3d5](https://github.com/vernonthedev/nestforge-extension/commit/726e3d595d4c351307b8ae431e1d3fdcdef4a641))
+
 ## [0.6.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.5.0...nestforge-v0.6.0) (2026-03-09)
 
 
