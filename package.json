@@ -1,7 +1,7 @@
 {
   "name": "nestforge",
-  "displayName": "Nestforge",
-  "description": "The ultimate developer companion for building high-performance, modular Rust backends. Streamline your NestForge workflow with CLI automation and resource scaffolding.",
+  "displayName": "NestForge Toolkit",
+  "description": "VS Code toolkit for NestForge CLI scaffolding, generators, database workflows, and Rust utility commands.",
   "version": "0.0.1",
   "author": "vernonthedev",
   "engines": {
@@ -9,16 +9,154 @@
   },
   "categories": [
     "Programming Languages",
-    "Snippets",
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "nestforge.helloWorld",
-        "title": "Hello World"
+        "command": "nestforge.new",
+        "title": "New Application",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.generate",
+        "title": "Generate",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.generateResourceHere",
+        "title": "Generate Resource Here",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.dbInit",
+        "title": "Init",
+        "category": "NestForge DB"
+      },
+      {
+        "command": "nestforge.dbGenerate",
+        "title": "Generate",
+        "category": "NestForge DB"
+      },
+      {
+        "command": "nestforge.dbMigrate",
+        "title": "Migrate",
+        "category": "NestForge DB"
+      },
+      {
+        "command": "nestforge.dbStatus",
+        "title": "Status",
+        "category": "NestForge DB"
+      },
+      {
+        "command": "nestforge.docs",
+        "title": "OpenAPI Docs",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.formatRust",
+        "title": "Format Rust",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.openLogs",
+        "title": "Open Logs",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.onboarding.openDocs",
+        "title": "Open Extension Docs",
+        "category": "NestForge"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "nestforge.generateResourceHere",
+          "when": "explorerResourceIsFolder",
+          "group": "NestForge@1"
+        },
+        {
+          "command": "nestforge.generate",
+          "when": "explorerResourceIsFolder",
+          "group": "NestForge@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "NestForge Toolkit",
+      "properties": {
+        "nestforge.cliPath": {
+          "type": "string",
+          "default": "nestforge",
+          "description": "Executable used for NestForge CLI commands."
+        },
+        "nestforge.cargoPath": {
+          "type": "string",
+          "default": "cargo",
+          "description": "Executable used for cargo utility commands."
+        },
+        "nestforge.docsUrl": {
+          "type": "string",
+          "default": "http://localhost:3000/api",
+          "description": "Default URL opened by the OpenAPI docs command."
+        },
+        "nestforge.dbStatus.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show database drift status in the status bar."
+        },
+        "nestforge.dbStatus.intervalMs": {
+          "type": "number",
+          "default": 300000,
+          "minimum": 60000,
+          "description": "Polling interval in milliseconds for database status checks."
+        }
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "nestforge.gettingStarted",
+        "title": "NestForge Toolkit",
+        "description": "Bootstrap a NestForge workspace, generate resources, and manage database drift from VS Code.",
+        "steps": [
+          {
+            "id": "nestforge.gettingStarted.new",
+            "title": "Create a project",
+            "description": "Launch the `NestForge: New Application` wizard to scaffold a workspace with transport flags.",
+            "media": {
+              "markdown": "Run [NestForge: New Application](command:nestforge.new) to scaffold a backend."
+            }
+          },
+          {
+            "id": "nestforge.gettingStarted.generate",
+            "title": "Generate a feature",
+            "description": "Use the generator wizard or the Explorer context menu to create and wire resources.",
+            "media": {
+              "markdown": "Run [NestForge: Generate](command:nestforge.generate) or right-click a folder and choose `Generate Resource Here`."
+            }
+          },
+          {
+            "id": "nestforge.gettingStarted.db",
+            "title": "Check database status",
+            "description": "Inspect migration drift and run database operations from the `NestForge DB` command group.",
+            "media": {
+              "markdown": "Run [NestForge DB: Status](command:nestforge.dbStatus) to refresh the status bar state."
+            }
+          },
+          {
+            "id": "nestforge.gettingStarted.docs",
+            "title": "Open project docs",
+            "description": "Open the configured OpenAPI endpoint or the extension README.",
+            "media": {
+              "markdown": "Run [NestForge: OpenAPI Docs](command:nestforge.docs) or [Open Extension Docs](command:nestforge.onboarding.openDocs)."
+            }
+          }
+        ]
       }
     ]
   },
@@ -34,16 +172,16 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.109.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.56.1",
-    "eslint": "^9.39.3",
-    "typescript": "^5.9.3",
-    "ts-loader": "^9.5.4",
-    "webpack": "^5.105.3",
-    "webpack-cli": "^6.0.1",
+    "@types/vscode": "^1.109.0",
     "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.39.3",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1",
+    "webpack": "^5.105.3",
+    "webpack-cli": "^6.0.1"
   }
 }
