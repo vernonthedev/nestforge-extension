@@ -80,7 +80,6 @@ export async function findModuleCandidatesInWorkspace(workspacePath: string): Pr
 
 			const entryPath = path.join(currentPath, entry.name);
 			if (entry.isDirectory()) {
-				candidates.add(entry.name);
 				await visit(entryPath, depth + 1);
 				continue;
 			}

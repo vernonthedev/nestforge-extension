@@ -48,9 +48,11 @@ test('findModuleCandidatesInWorkspace prefers src and returns sorted unique cand
 	const srcRoot = path.join(tempRoot, 'src');
 	await fs.mkdir(path.join(srcRoot, 'users'), { recursive: true });
 	await fs.mkdir(path.join(srcRoot, 'billing'), { recursive: true });
+	await fs.mkdir(path.join(srcRoot, 'guards'), { recursive: true });
 	await fs.writeFile(path.join(srcRoot, 'users', 'users.module.ts'), 'export class UsersModule {}');
 	await fs.writeFile(path.join(srcRoot, 'billing', 'billing.module.ts'), 'export class BillingModule {}');
 	await fs.writeFile(path.join(srcRoot, 'app.module.ts'), 'export class AppModule {}');
+	await fs.writeFile(path.join(srcRoot, 'guards', 'auth.guard.ts'), 'export class AuthGuard {}');
 
 	try {
 		const modules = await findModuleCandidatesInWorkspace(tempRoot);
