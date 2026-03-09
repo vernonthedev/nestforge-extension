@@ -103,7 +103,6 @@ export async function findModuleCandidatesInWorkspace(workspacePath: string): Pr
 export const NESTFORGE_COMMANDS: NestForgeCommandContribution[] = [
 	{ command: 'nestforge.new', title: 'New Application', category: 'NestForge' },
 	{ command: 'nestforge.generate', title: 'Generate', category: 'NestForge' },
-	{ command: 'nestforge.generateResourceHere', title: 'Generate Here', category: 'NestForge' },
 	{ command: 'nestforge.dbInit', title: 'Init', category: 'NestForge DB' },
 	{ command: 'nestforge.dbGenerate', title: 'Generate', category: 'NestForge DB' },
 	{ command: 'nestforge.dbMigrate', title: 'Migrate', category: 'NestForge DB' },

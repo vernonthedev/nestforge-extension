@@ -73,7 +73,6 @@ test('declared command definitions cover the expected command ids', () => {
 		[
 			'nestforge.new',
 			'nestforge.generate',
-			'nestforge.generateResourceHere',
 			'nestforge.dbInit',
 			'nestforge.dbGenerate',
 			'nestforge.dbMigrate',

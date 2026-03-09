@@ -38,11 +38,6 @@
         "category": "NestForge"
       },
       {
-        "command": "nestforge.generateResourceHere",
-        "title": "Generate Here",
-        "category": "NestForge"
-      },
-      {
         "command": "nestforge.dbInit",
         "title": "Init",
         "category": "NestForge DB"
@@ -86,14 +81,9 @@
     "menus": {
       "explorer/context": [
         {
-          "command": "nestforge.generateResourceHere",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@1"
-        },
-        {
           "command": "nestforge.generate",
           "when": "explorerResourceIsFolder",
-          "group": "NestForge@2"
+          "group": "NestForge@1"
         }
       ]
     },
@@ -147,7 +137,7 @@
             "title": "Generate a feature",
             "description": "Use the generator wizard or the Explorer context menu to create and wire resources.",
             "media": {
-              "markdown": "Run [NestForge: Generate](command:nestforge.generate) or right-click a folder and choose `Generate Here`."
+              "markdown": "Run [NestForge: Generate](command:nestforge.generate) from the Command Palette or a folder context menu."
             }
           },
           {

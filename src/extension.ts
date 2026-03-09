@@ -94,7 +94,6 @@ class NestForgeExtension {
 			...registerOnboarding(this.context),
 			vscode.commands.registerCommand('nestforge.new', () => this.runNewApplicationWizard()),
 			vscode.commands.registerCommand('nestforge.generate', (uri?: vscode.Uri) => this.runGeneratorWizard(uri)),
-			vscode.commands.registerCommand('nestforge.generateResourceHere', (uri?: vscode.Uri) => this.runGeneratorWizard(uri)),
 			vscode.commands.registerCommand('nestforge.dbInit', () => this.runDbCommand('init')),
 			vscode.commands.registerCommand('nestforge.dbGenerate', () => this.runDbCommand('generate')),
 			vscode.commands.registerCommand('nestforge.dbMigrate', () => this.runDbCommand('migrate')),
