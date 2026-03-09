@@ -39,6 +39,7 @@ jobs:
     env:
       VSCE_PAT: ${{ secrets.VSCE_PAT }}
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      OVSX_NAMESPACE_READY: ${{ vars.OVSX_NAMESPACE_READY }}
       VSIX_PATH: nestforge-${{ needs.release-please.outputs.version }}.vsix
 
     steps:
@@ -49,9 +50,19 @@ jobs:
             exit 1
           fi
 
-          if [ -z "${OVSX_PAT}" ]; then
-            echo "Missing repository secret OVSX_PAT." >&2
+          if [ "${OVSX_NAMESPACE_READY}" = "true" ] && [ -z "${OVSX_PAT}" ]; then
+            echo "Missing repository secret OVSX_PAT while OVSX_NAMESPACE_READY=true." >&2
             exit 1
+          fi
+
+      - name: Check Open VSX publishing mode
+        run: |
+          if [ "${OVSX_NAMESPACE_READY}" = "true" ]; then
+            echo "Open VSX publishing is enabled."
+          else
+            echo "Open VSX publishing is disabled."
+            echo "Set repository variable OVSX_NAMESPACE_READY=true after creating the 'vernonthedev' namespace on Open VSX."
+            echo "Until then, the workflow will still package the VSIX, publish to VS Code Marketplace, and upload the artifact to the GitHub release."
           fi
 
       - name: Check out release tag
@@ -82,6 +93,7 @@ jobs:
         run: pnpm dlx @vscode/vsce publish -p "${VSCE_PAT}"
 
       - name: Publish to Open VSX
+        if: ${{ env.OVSX_NAMESPACE_READY == 'true' }}
         run: pnpm dlx ovsx publish "${VSIX_PATH}" -p "${OVSX_PAT}"
 
       - name: Upload VSIX to GitHub release
