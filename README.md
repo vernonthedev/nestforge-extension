@@ -6,6 +6,8 @@ NestForge is a VS Code extension for driving the `nestforge` CLI from the editor
 
 - Latest version: `0.2.0` <!-- x-release-please-version -->
 - Release notes: see [CHANGELOG.md](./CHANGELOG.md) and [GitHub Releases](https://github.com/vernonthedev/nestforge-extension/releases)
+- License: [Apache-2.0](./LICENSE)
+- Contributing guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## Features
 
