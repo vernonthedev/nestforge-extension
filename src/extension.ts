@@ -167,6 +167,8 @@ class NestForgeExtension {
 			return;
 		}
 
+		const contextModule = await this.findModuleNameForUri(uri, workspacePath);
+
 		const category = await vscode.window.showQuickPick(
 			['Core', 'Cross-Cutting', 'Transport'].map((label) => ({ label })),
 			{
@@ -195,7 +197,12 @@ class NestForgeExtension {
 			return;
 		}
 
-		await this.runGenerator(generator.generator, workspacePath);
+		await this.runGenerator(
+			generator.generator,
+			workspacePath,
+			contextModule,
+			uri && !generator.generator.needsModule ? uri.fsPath : workspacePath,
+		);
 	}
 
 	private async generateResourceFromContext(uri?: vscode.Uri): Promise<void> {
@@ -210,13 +217,18 @@ class NestForgeExtension {
 			return;
 		}
 
-		await this.runGenerator(resource, workspacePath, folderName);
+		const moduleName = folderName
+			? await this.findModuleNameForUri(uri, workspacePath)
+			: undefined;
+
+		await this.runGenerator(resource, workspacePath, moduleName);
 	}
 
 	private async runGenerator(
 		generator: GeneratorDefinition,
 		workspacePath: string,
 		preselectedModule?: string,
+		executionCwd = workspacePath,
 	): Promise<void> {
 		const name = await vscode.window.showInputBox({
 			prompt: `Enter the ${generator.label.toLowerCase()} name`,
@@ -229,8 +241,8 @@ class NestForgeExtension {
 		}
 
 		let moduleName = preselectedModule;
-		if (generator.needsModule && !moduleName) {
-			moduleName = await this.pickTargetModule(workspacePath);
+		if (generator.needsModule) {
+			moduleName = await this.resolveTargetModule(workspacePath, moduleName);
 			if (!moduleName) {
 				return;
 			}
@@ -242,8 +254,10 @@ class NestForgeExtension {
 		await this.executeNestForge(
 			{ args, flags },
 			{
-				cwd: workspacePath,
-				showSuccessMessage: `${name.trim()} ${generator.label.toLowerCase()} created and wired.`,
+				cwd: executionCwd,
+				showSuccessMessage: generator.needsModule
+					? `${name.trim()} ${generator.label.toLowerCase()} created and wired.`
+					: `${name.trim()} ${generator.label.toLowerCase()} created.`,
 				refreshExplorer: true,
 			},
 		);
@@ -457,8 +471,44 @@ class NestForgeExtension {
 		return selected?.label;
 	}
 
+	private async resolveTargetModule(
+		workspacePath: string,
+		preselectedModule?: string,
+	): Promise<string | undefined> {
+		const modules = await this.findModuleCandidates(workspacePath);
+		if (preselectedModule && modules.includes(preselectedModule)) {
+			return preselectedModule;
+		}
+
+		if (preselectedModule && !modules.includes(preselectedModule)) {
+			vscode.window.showWarningMessage(
+				`The selected folder is not a NestForge module. Pick a valid module for ${preselectedModule}.`,
+			);
+		}
+
+		if (!modules.length) {
+			return vscode.window.showInputBox({
+				prompt: 'Enter the target module name',
+				ignoreFocusOut: true,
+				validateInput: (value) => value.trim() ? undefined : 'Module name is required.',
+			});
+		}
+
+		return this.pickTargetModule(workspacePath);
+	}
+
 	private async findModuleCandidates(workspacePath: string): Promise<string[]> {
 		return findModuleCandidatesInWorkspace(workspacePath);
+	}
+
+	private async findModuleNameForUri(uri: vscode.Uri | undefined, workspacePath: string): Promise<string | undefined> {
+		if (!uri) {
+			return undefined;
+		}
+
+		const folderName = path.basename(uri.fsPath);
+		const modules = await this.findModuleCandidates(workspacePath);
+		return modules.includes(folderName) ? folderName : undefined;
 	}
 
 	private getWorkspacePath(uri?: vscode.Uri): string | undefined {
