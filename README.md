@@ -140,14 +140,13 @@ This extension contributes the following settings:
 
 ## Marketplace Publishing
 
-Publishing to the VS Code Marketplace is linked to GitHub Releases.
+Publishing to the VS Code Marketplace and Open VSX now happens inside the same `Auto Release` workflow.
 
 One-time setup:
 
 - Create a Visual Studio Marketplace publisher.
 - Create an Azure DevOps Personal Access Token with Marketplace `Manage`.
 - Add repository secret `VSCE_PAT`.
-- Add repository variable `VSCE_PUBLISHER` with the Marketplace publisher identifier.
 - Create the same publisher namespace on Open VSX before the first release.
 - Create an Open VSX access token.
 - Add repository secret `OVSX_PAT`.
@@ -156,7 +155,7 @@ Release flow:
 
 - `release-please` creates or updates the release PR.
 - Merging the release PR creates the GitHub release and tag.
-- The publish workflow runs from that release, builds the VSIX, publishes to both the VS Code Marketplace and Open VSX, and uploads the VSIX asset back to GitHub Releases.
+- In that same `Auto Release` run, the extension is packaged, published to both the VS Code Marketplace and Open VSX, and the VSIX is uploaded back to the GitHub release.
 
 Open VSX namespace bootstrap example:
 

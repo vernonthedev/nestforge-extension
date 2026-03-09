@@ -69,7 +69,7 @@ Use `feat!:` or include a `BREAKING CHANGE:` footer for breaking changes.
 - GitHub Actions runs `Test and Lint`.
 - `release-please` opens or updates a release PR based on conventional commits.
 - Merging the release PR updates versioned files and creates the GitHub release.
-- The Marketplace publish workflow runs from the GitHub release and uses `VSCE_PAT` and `VSCE_PUBLISHER`.
+- In that same release workflow run, the extension is published to the VS Code Marketplace and Open VSX.
 
 ## Marketplace Setup
 
@@ -78,7 +78,6 @@ Before automatic publishing can work:
 - create a Marketplace publisher
 - create an Azure DevOps PAT with Marketplace `Manage`
 - store it as repository secret `VSCE_PAT`
-- store the publisher identifier as repository variable `VSCE_PUBLISHER`
 - create the matching Open VSX namespace once
 - create an Open VSX access token
 - store it as repository secret `OVSX_PAT`
