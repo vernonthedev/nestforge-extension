@@ -117,7 +117,7 @@ class NestForgeExtension {
 			{
 				canPickMany: true,
 				ignoreFocusOut: true,
-				placeHolder: 'Select one or more transport flags',
+				placeHolder: 'Select one or more transports',
 			},
 		);
 
@@ -128,7 +128,7 @@ class NestForgeExtension {
 		await this.executeNestForge(
 			{
 				args: ['new', appName.trim()],
-				flags: Object.fromEntries(transports.map((transport) => [transport.value, true])),
+				flags: { transport: transports.map((transport) => transport.value) },
 			},
 			{
 				cwd: destinationRoot,

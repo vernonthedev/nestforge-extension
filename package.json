@@ -137,7 +137,7 @@
           {
             "id": "nestforge.gettingStarted.new",
             "title": "Create a project",
-            "description": "Launch the `NestForge: New Application` wizard to scaffold a workspace with transport flags.",
+            "description": "Launch the `NestForge: New Application` wizard to scaffold a workspace with selected transports.",
             "media": {
               "markdown": "Run [NestForge: New Application](command:nestforge.new) to scaffold a backend."
             }

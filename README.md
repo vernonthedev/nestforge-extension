@@ -15,9 +15,9 @@ Run `NestForge: New Application` from the Command Palette to scaffold a new app 
 
 1. Enter the application name.
 2. Pick one or more transports.
-3. The extension runs `nestforge new <app-name>` with the selected flags.
+3. The extension runs `nestforge new <app-name>` with repeated `--transport <value>` options.
 
-Available transport flags:
+Available transport values:
 
 - `http`
 - `graphql`
