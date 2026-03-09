@@ -156,9 +156,3 @@ Release flow:
 - `release-please` creates or updates the release PR.
 - Merging the release PR creates the GitHub release and tag.
 - In that same `Auto Release` run, the extension is packaged, published to both the VS Code Marketplace and Open VSX, and the VSIX is uploaded back to the GitHub release.
-
-Open VSX namespace bootstrap example:
-
-```bash
-pnpm dlx ovsx create-namespace <your-publisher> -p <your-open-vsx-token>
-```
