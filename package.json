@@ -161,15 +161,20 @@
     ]
   },
   "scripts": {
+    "prepare": "lefthook install",
     "vscode:prepublish": "pnpm run package",
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "build:test": "pnpm run compile-tests && pnpm run compile",
+    "pretest": "pnpm run build:test && pnpm run lint",
     "lint": "eslint src",
-    "test": "node --test out/test/nestforge-core.test.js"
+    "lint:staged": "eslint --max-warnings=0 --fix",
+    "test:unit": "node out/test/nestforge-core.test.js",
+    "test:hook": "pnpm run build:test && pnpm run test:unit",
+    "test": "pnpm run test:unit"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -178,6 +183,7 @@
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.39.3",
+    "lefthook": "^2.1.3",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1",

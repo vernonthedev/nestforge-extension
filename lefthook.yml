@@ -1,0 +1,12 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: lint staged files
+      glob: "*.{js,cjs,mjs,ts,cts,mts}"
+      run: pnpm run lint:staged -- {staged_files}
+      stage_fixed: true
+      runner: powershell -NoProfile -Command {cmd}
+    - name: run unit tests
+      glob: "{src/**/*.ts,package.json,tsconfig.json,webpack.config.js,eslint.config.mjs}"
+      run: pnpm run test:hook
+      runner: powershell -NoProfile -Command {cmd}
