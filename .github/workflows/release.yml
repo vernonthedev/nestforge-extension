@@ -39,6 +39,7 @@ jobs:
     env:
       VSCE_PAT: ${{ secrets.VSCE_PAT }}
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      VSIX_PATH: nestforge-${{ needs.release-please.outputs.version }}.vsix
 
     steps:
       - name: Validate publishing configuration
@@ -75,15 +76,15 @@ jobs:
         run: pnpm run package
 
       - name: Package VSIX
-        run: pnpm dlx @vscode/vsce package --packagePath "nestforge-${{ needs.release-please.outputs.version }}.vsix"
+        run: pnpm dlx @vscode/vsce package --out "${VSIX_PATH}"
 
       - name: Publish to Visual Studio Marketplace
-        run: pnpm dlx @vscode/vsce publish --packagePath "nestforge-${{ needs.release-please.outputs.version }}.vsix" -p "${VSCE_PAT}"
+        run: pnpm dlx @vscode/vsce publish -p "${VSCE_PAT}"
 
       - name: Publish to Open VSX
-        run: pnpm dlx ovsx publish "nestforge-${{ needs.release-please.outputs.version }}.vsix" -p "${OVSX_PAT}"
+        run: pnpm dlx ovsx publish "${VSIX_PATH}" -p "${OVSX_PAT}"
 
       - name: Upload VSIX to GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ needs.release-please.outputs.tag_name }}" "nestforge-${{ needs.release-please.outputs.version }}.vsix" --clobber
+        run: gh release upload "${{ needs.release-please.outputs.tag_name }}" "${VSIX_PATH}" --clobber
