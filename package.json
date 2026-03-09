@@ -3,10 +3,13 @@
   "displayName": "Nestforge",
   "description": "The ultimate developer companion for building high-performance, modular Rust backends. Streamline your NestForge workflow with CLI automation and resource scaffolding.",
   "version": "0.0.1",
+  "author": "vernonthedev",
   "engines": {
     "vscode": "^1.109.0"
   },
   "categories": [
+    "Programming Languages",
+    "Snippets",
     "Other"
   ],
   "activationEvents": [],
