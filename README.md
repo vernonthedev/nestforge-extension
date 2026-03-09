@@ -4,7 +4,7 @@ NestForge Toolkit is a VS Code extension for driving the `nestforge` CLI from th
 
 ## Current Release
 
-- Latest version: `0.0.1` <!-- x-release-please-version -->
+- Latest version: `0.1.0` <!-- x-release-please-version -->
 - Release notes: see [CHANGELOG.md](./CHANGELOG.md) and [GitHub Releases](https://github.com/vernonthedev/nestforge-extension/releases)
 
 ## Features
