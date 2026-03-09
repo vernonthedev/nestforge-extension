@@ -1,4 +1,5 @@
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { CliManager } from './cli-manager';
@@ -92,8 +93,8 @@ class NestForgeExtension {
 	}
 
 	private async runNewApplicationWizard(): Promise<void> {
-		const workspacePath = this.getWorkspacePath();
-		if (!workspacePath) {
+		const destinationRoot = await this.getNewApplicationDestination();
+		if (!destinationRoot) {
 			return;
 		}
 
@@ -130,12 +131,34 @@ class NestForgeExtension {
 				flags: Object.fromEntries(transports.map((transport) => [transport.value, true])),
 			},
 			{
-				cwd: workspacePath,
+				cwd: destinationRoot,
 				progressTitle: `Scaffolding ${appName.trim()}...`,
-				showSuccessMessage: `${appName.trim()} created successfully.`,
 				refreshExplorer: true,
 			},
 		);
+
+		const createdAppPath = path.join(destinationRoot, appName.trim());
+		await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(createdAppPath), {
+			forceNewWindow: false,
+		});
+	}
+
+	private async getNewApplicationDestination(): Promise<string | undefined> {
+		const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+		if (workspacePath) {
+			return workspacePath;
+		}
+
+		const selected = await vscode.window.showOpenDialog({
+			canSelectFiles: false,
+			canSelectFolders: true,
+			canSelectMany: false,
+			defaultUri: vscode.Uri.file(os.homedir()),
+			openLabel: 'Select parent folder',
+			title: 'Choose where NestForge should create the new application',
+		});
+
+		return selected?.[0]?.fsPath;
 	}
 
 	private async runGeneratorWizard(uri?: vscode.Uri): Promise<void> {
