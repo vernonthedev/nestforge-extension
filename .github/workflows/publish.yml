@@ -20,6 +20,7 @@ jobs:
     env:
       VSCE_PAT: ${{ secrets.VSCE_PAT }}
       VSCE_PUBLISHER: ${{ vars.VSCE_PUBLISHER }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
     steps:
       - name: Validate Marketplace configuration
@@ -31,6 +32,11 @@ jobs:
 
           if [ -z "${VSCE_PUBLISHER}" ]; then
             echo "Missing repository variable VSCE_PUBLISHER." >&2
+            exit 1
+          fi
+
+          if [ -z "${OVSX_PAT}" ]; then
+            echo "Missing repository secret OVSX_PAT." >&2
             exit 1
           fi
 
@@ -69,6 +75,9 @@ jobs:
 
       - name: Publish to Visual Studio Marketplace
         run: pnpm dlx @vscode/vsce publish --packagePath "nestforge-${{ steps.version.outputs.value }}.vsix" -p "${VSCE_PAT}"
+
+      - name: Publish to Open VSX
+        run: pnpm dlx ovsx publish "nestforge-${{ steps.version.outputs.value }}.vsix" -p "${OVSX_PAT}"
 
       - name: Upload VSIX to GitHub release
         if: ${{ github.event_name == 'release' }}

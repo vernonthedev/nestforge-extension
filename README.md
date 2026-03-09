@@ -148,9 +148,18 @@ One-time setup:
 - Create an Azure DevOps Personal Access Token with Marketplace `Manage`.
 - Add repository secret `VSCE_PAT`.
 - Add repository variable `VSCE_PUBLISHER` with the Marketplace publisher identifier.
+- Create the same publisher namespace on Open VSX before the first release.
+- Create an Open VSX access token.
+- Add repository secret `OVSX_PAT`.
 
 Release flow:
 
 - `release-please` creates or updates the release PR.
 - Merging the release PR creates the GitHub release and tag.
-- The Marketplace workflow runs from that release, builds the VSIX, publishes to the VS Code Marketplace, and uploads the VSIX asset back to GitHub Releases.
+- The publish workflow runs from that release, builds the VSIX, publishes to both the VS Code Marketplace and Open VSX, and uploads the VSIX asset back to GitHub Releases.
+
+Open VSX namespace bootstrap example:
+
+```bash
+pnpm dlx ovsx create-namespace <your-publisher> -p <your-open-vsx-token>
+```

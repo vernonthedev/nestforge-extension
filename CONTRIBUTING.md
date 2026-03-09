@@ -79,6 +79,9 @@ Before automatic publishing can work:
 - create an Azure DevOps PAT with Marketplace `Manage`
 - store it as repository secret `VSCE_PAT`
 - store the publisher identifier as repository variable `VSCE_PUBLISHER`
+- create the matching Open VSX namespace once
+- create an Open VSX access token
+- store it as repository secret `OVSX_PAT`
 
 ## License
 
