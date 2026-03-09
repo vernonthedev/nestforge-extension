@@ -39,7 +39,67 @@
       },
       {
         "command": "nestforge.generateResourceHere",
-        "title": "Generate Resource Here",
+        "title": "Generate Here",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createModule",
+        "title": "Create Module",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createService",
+        "title": "Create Service",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createResource",
+        "title": "Create Resource",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createController",
+        "title": "Create Controller",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createResolver",
+        "title": "Create Resolver",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createGateway",
+        "title": "Create Gateway",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createGuard",
+        "title": "Create Guard",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createInterceptor",
+        "title": "Create Interceptor",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createFilter",
+        "title": "Create Filter",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createPipe",
+        "title": "Create Pipe",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createMiddleware",
+        "title": "Create Middleware",
+        "category": "NestForge"
+      },
+      {
+        "command": "nestforge.createDecorator",
+        "title": "Create Decorator",
         "category": "NestForge"
       },
       {
@@ -147,7 +207,7 @@
             "title": "Generate a feature",
             "description": "Use the generator wizard or the Explorer context menu to create and wire resources.",
             "media": {
-              "markdown": "Run [NestForge: Generate](command:nestforge.generate) or right-click a folder and choose `Generate Resource Here`."
+              "markdown": "Run [NestForge: Generate](command:nestforge.generate) or right-click a folder and choose `Generate Here`."
             }
           },
           {

@@ -70,7 +70,8 @@ class NestForgeExtension {
 			...registerOnboarding(this.context),
 			vscode.commands.registerCommand('nestforge.new', () => this.runNewApplicationWizard()),
 			vscode.commands.registerCommand('nestforge.generate', (uri?: vscode.Uri) => this.runGeneratorWizard(uri)),
-			vscode.commands.registerCommand('nestforge.generateResourceHere', (uri?: vscode.Uri) => this.generateResourceFromContext(uri)),
+			vscode.commands.registerCommand('nestforge.generateResourceHere', (uri?: vscode.Uri) => this.runGeneratorWizard(uri)),
+			...this.registerDirectGeneratorCommands(),
 			vscode.commands.registerCommand('nestforge.dbInit', () => this.runDbCommand('init')),
 			vscode.commands.registerCommand('nestforge.dbGenerate', () => this.runDbCommand('generate')),
 			vscode.commands.registerCommand('nestforge.dbMigrate', () => this.runDbCommand('migrate')),
@@ -90,6 +91,15 @@ class NestForgeExtension {
 
 		this.statusBar.show();
 		this.configureDbStatusPolling();
+	}
+
+	private registerDirectGeneratorCommands(): vscode.Disposable[] {
+		return GENERATORS.map((generator) =>
+			vscode.commands.registerCommand(
+				`nestforge.create${generator.label}`,
+				(uri?: vscode.Uri) => this.runSpecificGenerator(generator.command, uri),
+			),
+		);
 	}
 
 	private async runNewApplicationWizard(): Promise<void> {
@@ -205,23 +215,24 @@ class NestForgeExtension {
 		);
 	}
 
-	private async generateResourceFromContext(uri?: vscode.Uri): Promise<void> {
+	private async runSpecificGenerator(generatorCommand: string, uri?: vscode.Uri): Promise<void> {
 		const workspacePath = this.getWorkspacePath(uri);
 		if (!workspacePath) {
 			return;
 		}
 
-		const folderName = uri ? path.basename(uri.fsPath) : undefined;
-		const resource = GENERATORS.find((entry) => entry.command === 'resource');
-		if (!resource) {
+		const generator = GENERATORS.find((entry) => entry.command === generatorCommand);
+		if (!generator) {
 			return;
 		}
 
-		const moduleName = folderName
-			? await this.findModuleNameForUri(uri, workspacePath)
-			: undefined;
-
-		await this.runGenerator(resource, workspacePath, moduleName);
+		const contextModule = await this.findModuleNameForUri(uri, workspacePath);
+		await this.runGenerator(
+			generator,
+			workspacePath,
+			contextModule,
+			uri && !generator.needsModule ? uri.fsPath : workspacePath,
+		);
 	}
 
 	private async runGenerator(
