@@ -1,71 +1,128 @@
-# nestforge README
+# NestForge Toolkit
 
-This is the README for your extension "nestforge". After writing up a brief description, we recommend including the following sections.
+NestForge Toolkit is a VS Code extension for driving the `nestforge` CLI from the editor. It provides guided scaffolding, generator workflows, database operations, Rust utility commands, onboarding, and workspace-aware context menus for NestForge projects.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### Scaffolding Wizard
 
-For example if there is an image subfolder under your extension project workspace:
+Run `NestForge: New Application` from the Command Palette to scaffold a new app with a guided flow:
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Enter the application name.
+2. Pick one or more transports.
+3. The extension runs `nestforge new <app-name>` with the selected flags.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+Available transport flags:
+
+- `http`
+- `graphql`
+- `grpc`
+- `microservices`
+- `websockets`
+
+### Generator Wizard
+
+Run `NestForge: Generate` to open a nested QuickPick workflow:
+
+1. Choose a category: `Core`, `Cross-Cutting`, or `Transport`.
+2. Choose a generator such as `Resource`, `Interceptor`, `Service`, or `Gateway`.
+3. Enter the resource name.
+4. If required, select the target module.
+
+The extension then runs the matching `nestforge g ...` command and refreshes the File Explorer so generated files appear immediately.
+
+### Explorer Context Menus
+
+Right-click a folder in the Explorer to access:
+
+- `NestForge: Generate Resource Here`
+- `NestForge: Generate`
+
+`Generate Resource Here` infers the `--module` flag from the selected folder name. For example, right-clicking `src/users` will target the `users` module automatically.
+
+### Database Dashboard
+
+The extension contributes a dedicated `NestForge DB` command group:
+
+- `NestForge DB: Init`
+- `NestForge DB: Generate`
+- `NestForge DB: Migrate`
+- `NestForge DB: Status`
+
+Database status is also surfaced in the status bar. The extension can poll `nestforge db status` on an interval and after saves to detect migration drift. If drift-like output is detected, the status bar switches to a warning state.
+
+`NestForge DB: Migrate` checks for a `.env` file in the workspace root before running.
+
+### Utilities
+
+- `NestForge: OpenAPI Docs` opens the configured docs URL.
+- `NestForge: Format Rust` runs `cargo fmt`.
+- `NestForge: Open Logs` reveals the `NestForge Logs` output channel.
+
+### Logging and Progress
+
+- Long-running operations such as DB migrations and project formatting run with `vscode.window.withProgress`.
+- CLI stdout and stderr are streamed to the `NestForge Logs` output channel.
+- stderr is shown automatically on command failures so CLI errors stay visible.
+
+### Walkthrough
+
+The extension includes a getting-started walkthrough that links directly to:
+
+- project scaffolding
+- generator workflows
+- database status checks
+- extension docs
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- VS Code `1.109.0` or later
+- A `nestforge` CLI executable available on your `PATH`, or a custom path configured through settings
+- `cargo` installed if you want to use `NestForge: Format Rust`
+
+## Commands
+
+### NestForge
+
+- `NestForge: New Application`
+- `NestForge: Generate`
+- `NestForge: Generate Resource Here`
+- `NestForge: OpenAPI Docs`
+- `NestForge: Format Rust`
+- `NestForge: Open Logs`
+- `NestForge: Open Extension Docs`
+
+### NestForge DB
+
+- `NestForge DB: Init`
+- `NestForge DB: Generate`
+- `NestForge DB: Migrate`
+- `NestForge DB: Status`
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- `nestforge.cliPath`: executable used for NestForge CLI commands. Default: `nestforge`
+- `nestforge.cargoPath`: executable used for cargo commands. Default: `cargo`
+- `nestforge.docsUrl`: URL opened by `NestForge: OpenAPI Docs`. Default: `http://localhost:3000/api`
+- `nestforge.dbStatus.enabled`: enable or disable DB status polling and the status bar item. Default: `true`
+- `nestforge.dbStatus.intervalMs`: polling interval for `nestforge db status`. Default: `300000`
+
+## Usage Notes
+
+- The extension activates on `onStartupFinished`.
+- Most commands require an open workspace folder.
+- Module-aware generators attempt to discover modules from `src/` first and then fall back to the workspace root.
+- If a command generates or changes files, the extension refreshes the File Explorer after the CLI completes.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- Drift detection currently relies on parsing `nestforge db status` output for keywords such as `drift`, `out of sync`, and `up to date`. If the CLI output format changes, the status bar mapping may need to be updated.
+- The extension assumes `nestforge` and `cargo` can be executed in the workspace shell environment configured by VS Code.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial toolkit release with command palette workflows, Explorer context menus, DB status integration, onboarding, logging, and Rust formatting support.
