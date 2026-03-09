@@ -2,7 +2,7 @@
   "name": "nestforge",
   "displayName": "NestForge Toolkit",
   "description": "VS Code toolkit for NestForge CLI scaffolding, generators, database workflows, and Rust utility commands.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "vernonthedev",
   "license": "MIT",
   "packageManager": "pnpm@10.30.1",
