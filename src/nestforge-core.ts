@@ -39,10 +39,31 @@ export function buildCliArgs(baseArgs: string[], flags?: Record<string, FlagValu
 	return args;
 }
 
-export function classifyDbStatusOutput(output: string): 'healthy' | 'warning' | 'unknown' {
+export function classifyDbStatusOutput(output: string): 'healthy' | 'pending' | 'warning' | 'unknown' {
 	const normalized = output.toLowerCase();
+	const driftMatch = normalized.match(/\bdrift:\s*(\d+)\b/);
+	const pendingMatch = normalized.match(/\bpending:\s*(\d+)\b/);
+	const appliedMatch = normalized.match(/\bapplied:\s*(\d+)\b/);
 
-	if (/\b(drift|out of sync|pending|diverged|not up to date)\b/.test(normalized)) {
+	if (driftMatch) {
+		const driftCount = Number(driftMatch[1]);
+		if (Number.isFinite(driftCount) && driftCount > 0) {
+			return 'warning';
+		}
+	}
+
+	if (pendingMatch) {
+		const pendingCount = Number(pendingMatch[1]);
+		if (Number.isFinite(pendingCount) && pendingCount > 0) {
+			return 'pending';
+		}
+	}
+
+	if (driftMatch || pendingMatch || appliedMatch) {
+		return 'healthy';
+	}
+
+	if (/\b(drift|out of sync|diverged|not up to date)\b/.test(normalized)) {
 		return 'warning';
 	}
 

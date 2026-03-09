@@ -32,7 +32,15 @@ test('buildCliArgs expands booleans, scalars, arrays, and skips falsy flags', ()
 });
 
 test('classifyDbStatusOutput detects warning output', () => {
-	assert.equal(classifyDbStatusOutput('Database drift detected and migrations are pending.'), 'warning');
+	assert.equal(classifyDbStatusOutput('Applied: 3\nPending: 0\nDrift: 2'), 'warning');
+});
+
+test('classifyDbStatusOutput detects pending migrations without drift', () => {
+	assert.equal(classifyDbStatusOutput('Applied: 0\nPending: 1\nDrift: 0'), 'pending');
+});
+
+test('classifyDbStatusOutput treats zero drift and zero pending as healthy', () => {
+	assert.equal(classifyDbStatusOutput('Applied: 1\nPending: 0\nDrift: 0'), 'healthy');
 });
 
 test('classifyDbStatusOutput detects healthy output', () => {

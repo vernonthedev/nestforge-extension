@@ -23,7 +23,7 @@ interface GeneratorCategoryOption {
 }
 
 interface DbStatusState {
-	kind: 'healthy' | 'warning' | 'unknown' | 'error';
+	kind: 'healthy' | 'pending' | 'warning' | 'unknown' | 'error';
 	text: string;
 	tooltip: string;
 }
@@ -344,11 +344,25 @@ class NestForgeExtension {
 			if (statusKind === 'warning') {
 				this.setDbStatus({
 					kind: 'warning',
-					text: 'NestForge DB Drift',
-					tooltip: 'Database schema appears out of sync. Click to inspect status.',
+					text: 'NestForge DB Needs Review',
+					tooltip: 'Database changes were detected that need attention. Click to inspect status.',
 				});
 				if (notifyOnSuccess) {
-					vscode.window.showWarningMessage('NestForge database status reports drift.');
+					vscode.window.showWarningMessage(
+						'NestForge found unapplied or conflicting database changes. Open NestForge Logs for details.',
+					);
+				}
+				return;
+			}
+
+			if (statusKind === 'pending') {
+				this.setDbStatus({
+					kind: 'pending',
+					text: 'NestForge DB Pending',
+					tooltip: 'Database connection is working, but migrations are still pending.',
+				});
+				if (notifyOnSuccess) {
+					vscode.window.showInformationMessage('NestForge database is connected. Pending migrations are available.');
 				}
 				return;
 			}
@@ -432,6 +446,7 @@ class NestForgeExtension {
 	private setDbStatus(state: DbStatusState): void {
 		const iconByKind: Record<DbStatusState['kind'], string> = {
 			healthy: '$(pass-filled)',
+			pending: '$(clock)',
 			warning: '$(warning)',
 			unknown: '$(question)',
 			error: '$(error)',

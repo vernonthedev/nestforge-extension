@@ -54,7 +54,7 @@ The extension contributes a dedicated `NestForge DB` command group:
 - `NestForge DB: Migrate`
 - `NestForge DB: Status`
 
-Database status is also surfaced in the status bar. The extension can poll `nestforge db status` on an interval and after saves to detect migration drift. If drift-like output is detected, the status bar switches to a warning state.
+Database status is also surfaced in the status bar. The extension can poll `nestforge db status` on an interval and after saves to detect pending migrations or database changes that need review. If a warning-like status is detected, the status bar switches to a warning state.
 
 `NestForge DB: Migrate` checks for a `.env` file in the workspace root before running.
 `NestForge DB: Generate` prompts for a migration name before running `nestforge db generate <name>`.
@@ -123,7 +123,7 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-- Drift detection currently relies on parsing `nestforge db status` output for keywords such as `drift`, `out of sync`, and `up to date`. If the CLI output format changes, the status bar mapping may need to be updated.
+- Database status currently relies on parsing `nestforge db status` output for keywords and counters such as `Drift`, `Pending`, `out of sync`, and `up to date`. If the CLI output format changes, the status bar mapping may need to be updated.
 - The extension assumes `nestforge` and `cargo` can be executed in the workspace shell environment configured by VS Code.
 
 ## Release Workflow
