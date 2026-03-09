@@ -2,6 +2,13 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.1.1](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.1.0...nestforge-v0.1.1) (2026-03-09)
+
+
+### Bug Fixes
+
+* update references from "NestForge Toolkit" to "NestForge" in README, CHANGELOG, package.json, and extension.ts ([755ca5f](https://github.com/vernonthedev/nestforge-extension/commit/755ca5f25a549fc4e275030be20f4b28362e1f06))
+
 ## [0.1.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.0.1...nestforge-v0.1.0) (2026-03-09)
 
 
