@@ -274,6 +274,24 @@ class NestForgeExtension {
 			return;
 		}
 
+		let args: string[] = ['db', subcommand];
+		let successMessage = `nestforge db ${subcommand} completed.`;
+
+		if (subcommand === 'generate') {
+			const migrationName = await vscode.window.showInputBox({
+				prompt: 'Enter the migration name',
+				ignoreFocusOut: true,
+				validateInput: (value) => value.trim() ? undefined : 'Migration name is required.',
+			});
+
+			if (!migrationName) {
+				return;
+			}
+
+			args = ['db', 'generate', migrationName.trim()];
+			successMessage = `Migration ${migrationName.trim()} generated.`;
+		}
+
 		if (subcommand === 'migrate') {
 			const envPath = path.join(workspacePath, '.env');
 			const hasEnvFile = await fileExists(envPath);
@@ -284,11 +302,11 @@ class NestForgeExtension {
 		}
 
 		await this.executeNestForge(
-			{ args: ['db', subcommand] },
+			{ args },
 			{
 				cwd: workspacePath,
 				progressTitle: subcommand === 'migrate' ? 'Running database migrations...' : undefined,
-				showSuccessMessage: `nestforge db ${subcommand} completed.`,
+				showSuccessMessage: successMessage,
 				refreshExplorer: true,
 			},
 		);

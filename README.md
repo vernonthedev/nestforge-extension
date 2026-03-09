@@ -57,6 +57,7 @@ The extension contributes a dedicated `NestForge DB` command group:
 Database status is also surfaced in the status bar. The extension can poll `nestforge db status` on an interval and after saves to detect migration drift. If drift-like output is detected, the status bar switches to a warning state.
 
 `NestForge DB: Migrate` checks for a `.env` file in the workspace root before running.
+`NestForge DB: Generate` prompts for a migration name before running `nestforge db generate <name>`.
 
 ### Utilities
 
