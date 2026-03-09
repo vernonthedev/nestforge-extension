@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/nestforge-logo.svg" alt="NestForge logo" width="160" />
+  <img src="./assets/logo.png" alt="NestForge logo" width="160" />
 </p>
 
 NestForge is a VS Code extension for driving the `nestforge` CLI from the editor. It provides guided scaffolding, generator workflows, database operations, Rust utility commands, onboarding, and workspace-aware context menus for NestForge projects.
@@ -137,3 +137,20 @@ This extension contributes the following settings:
 - GitHub Actions opens or updates a release PR through `release-please` only after the `Test and Lint` workflow in [.github/workflows/test.yml](/c:/Users/editing/Desktop/coding/extensions/nestforge/.github/workflows/test.yml#L1) passes for `main`.
 - Merging that release PR updates `package.json`, `CHANGELOG.md`, and the version marker in this README before creating the GitHub release.
 - The workflow uses the repository `GITHUB_TOKEN`, so GitHub repository settings must allow Actions to create pull requests.
+
+## Marketplace Publishing
+
+Publishing to the VS Code Marketplace is linked to GitHub Releases.
+
+One-time setup:
+
+- Create a Visual Studio Marketplace publisher.
+- Create an Azure DevOps Personal Access Token with Marketplace `Manage`.
+- Add repository secret `VSCE_PAT`.
+- Add repository variable `VSCE_PUBLISHER` with the Marketplace publisher identifier.
+
+Release flow:
+
+- `release-please` creates or updates the release PR.
+- Merging the release PR creates the GitHub release and tag.
+- The Marketplace workflow runs from that release, builds the VSIX, publishes to the VS Code Marketplace, and uploads the VSIX asset back to GitHub Releases.
