@@ -105,7 +105,7 @@ This extension contributes the following settings:
 
 - `nestforge.cliPath`: executable used for NestForge CLI commands. Default: `nestforge`
 - `nestforge.cargoPath`: executable used for cargo commands. Default: `cargo`
-- `nestforge.docsUrl`: URL opened by `NestForge: OpenAPI Docs`. Default: `http://localhost:3000/api`
+- `nestforge.docsUrl`: URL opened by `NestForge: OpenAPI Docs`. Default: `http://localhost:3000/api/docs`
 - `nestforge.dbStatus.enabled`: enable or disable DB status polling and the status bar item. Default: `true`
 - `nestforge.dbStatus.intervalMs`: polling interval for `nestforge db status`. Default: `300000`
 

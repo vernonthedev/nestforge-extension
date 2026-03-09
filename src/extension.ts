@@ -327,7 +327,7 @@ class NestForgeExtension {
 	}
 
 	private async openDocs(): Promise<void> {
-		const docsUrl = vscode.workspace.getConfiguration('nestforge').get<string>('docsUrl', 'http://localhost:3000/api');
+		const docsUrl = vscode.workspace.getConfiguration('nestforge').get<string>('docsUrl', 'http://localhost:3000/api/docs');
 		await vscode.env.openExternal(vscode.Uri.parse(docsUrl));
 	}
 
