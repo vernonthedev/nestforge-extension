@@ -2,6 +2,13 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.5.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.4.0...nestforge-v0.5.0) (2026-03-09)
+
+
+### Features
+
+* integrate Marketplace and Open VSX publishing into Auto Release workflow ([4e3ab7c](https://github.com/vernonthedev/nestforge-extension/commit/4e3ab7c604570e132583a62382bc02ad113de110))
+
 ## [0.4.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.3.0...nestforge-v0.4.0) (2026-03-09)
 
 
