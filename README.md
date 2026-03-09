@@ -41,15 +41,6 @@ The extension then runs the matching `nestforge g ...` command and refreshes the
 Right-click a folder in the Explorer to access:
 
 - `NestForge: Generate Here`
-- `NestForge: Create Controller`
-- `NestForge: Create Service`
-- `NestForge: Create Resource`
-- `NestForge: Create Guard`
-- `NestForge: Create Interceptor`
-- `NestForge: Create Filter`
-- `NestForge: Create Pipe`
-- `NestForge: Create Middleware`
-- `NestForge: Create Decorator`
 - `NestForge: Generate`
 
 `Generate Here` opens the normal generator selection flow scoped to the selected folder. If the folder is a real Nest module such as `src/users`, module-aware generators will target `users` automatically. Non-module generators such as guards and pipes run relative to the selected folder.
@@ -102,18 +93,6 @@ The extension includes a getting-started walkthrough that links directly to:
 - `NestForge: New Application`
 - `NestForge: Generate`
 - `NestForge: Generate Here`
-- `NestForge: Create Module`
-- `NestForge: Create Service`
-- `NestForge: Create Resource`
-- `NestForge: Create Controller`
-- `NestForge: Create Resolver`
-- `NestForge: Create Gateway`
-- `NestForge: Create Guard`
-- `NestForge: Create Interceptor`
-- `NestForge: Create Filter`
-- `NestForge: Create Pipe`
-- `NestForge: Create Middleware`
-- `NestForge: Create Decorator`
 - `NestForge: OpenAPI Docs`
 - `NestForge: Format Rust`
 - `NestForge: Open Logs`

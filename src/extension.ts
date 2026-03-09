@@ -16,6 +16,12 @@ interface GeneratorDefinition {
 	needsModule: boolean;
 }
 
+interface GeneratorCategoryOption {
+	label: GeneratorCategory;
+	description: string;
+	detail: string;
+}
+
 interface DbStatusState {
 	kind: 'healthy' | 'warning' | 'unknown' | 'error';
 	text: string;
@@ -45,6 +51,24 @@ const TRANSPORT_OPTIONS = [
 	{ label: 'WebSockets', value: 'websockets' },
 ];
 
+const GENERATOR_CATEGORY_OPTIONS: GeneratorCategoryOption[] = [
+	{
+		label: 'Core',
+		description: 'Modules, services, and full resources',
+		detail: 'Use this for app structure and module-wired building blocks.',
+	},
+	{
+		label: 'Transport',
+		description: 'Controllers, resolvers, and gateways',
+		detail: 'Use this for HTTP, GraphQL, and WebSocket entry points.',
+	},
+	{
+		label: 'Cross-Cutting',
+		description: 'Guards, interceptors, filters, pipes, middleware, and decorators',
+		detail: 'Use this for reusable framework concerns that usually do not need a module.',
+	},
+];
+
 class NestForgeExtension {
 	private readonly cliManager: CliManager;
 	private readonly statusBar: vscode.StatusBarItem;
@@ -71,7 +95,6 @@ class NestForgeExtension {
 			vscode.commands.registerCommand('nestforge.new', () => this.runNewApplicationWizard()),
 			vscode.commands.registerCommand('nestforge.generate', (uri?: vscode.Uri) => this.runGeneratorWizard(uri)),
 			vscode.commands.registerCommand('nestforge.generateResourceHere', (uri?: vscode.Uri) => this.runGeneratorWizard(uri)),
-			...this.registerDirectGeneratorCommands(),
 			vscode.commands.registerCommand('nestforge.dbInit', () => this.runDbCommand('init')),
 			vscode.commands.registerCommand('nestforge.dbGenerate', () => this.runDbCommand('generate')),
 			vscode.commands.registerCommand('nestforge.dbMigrate', () => this.runDbCommand('migrate')),
@@ -91,15 +114,6 @@ class NestForgeExtension {
 
 		this.statusBar.show();
 		this.configureDbStatusPolling();
-	}
-
-	private registerDirectGeneratorCommands(): vscode.Disposable[] {
-		return GENERATORS.map((generator) =>
-			vscode.commands.registerCommand(
-				`nestforge.create${generator.label}`,
-				(uri?: vscode.Uri) => this.runSpecificGenerator(generator.command, uri),
-			),
-		);
 	}
 
 	private async runNewApplicationWizard(): Promise<void> {
@@ -180,10 +194,10 @@ class NestForgeExtension {
 		const contextModule = await this.findModuleNameForUri(uri, workspacePath);
 
 		const category = await vscode.window.showQuickPick(
-			['Core', 'Cross-Cutting', 'Transport'].map((label) => ({ label })),
+			GENERATOR_CATEGORY_OPTIONS,
 			{
 				ignoreFocusOut: true,
-				placeHolder: 'Select a generator category',
+				placeHolder: 'Choose what kind of file you want to create',
 			},
 		);
 
@@ -194,12 +208,13 @@ class NestForgeExtension {
 		const generator = await vscode.window.showQuickPick(
 			GENERATORS.filter((entry) => entry.category === category.label).map((entry) => ({
 				label: entry.label,
+				description: entry.needsModule ? 'Requires a target module' : 'Can be created directly in the selected folder',
 				detail: entry.detail,
 				generator: entry,
 			})),
 			{
 				ignoreFocusOut: true,
-				placeHolder: `Select a ${category.label.toLowerCase()} generator`,
+				placeHolder: `Select a ${category.label.toLowerCase()} generator to create`,
 			},
 		);
 
@@ -212,26 +227,6 @@ class NestForgeExtension {
 			workspacePath,
 			contextModule,
 			uri && !generator.generator.needsModule ? uri.fsPath : workspacePath,
-		);
-	}
-
-	private async runSpecificGenerator(generatorCommand: string, uri?: vscode.Uri): Promise<void> {
-		const workspacePath = this.getWorkspacePath(uri);
-		if (!workspacePath) {
-			return;
-		}
-
-		const generator = GENERATORS.find((entry) => entry.command === generatorCommand);
-		if (!generator) {
-			return;
-		}
-
-		const contextModule = await this.findModuleNameForUri(uri, workspacePath);
-		await this.runGenerator(
-			generator,
-			workspacePath,
-			contextModule,
-			uri && !generator.needsModule ? uri.fsPath : workspacePath,
 		);
 	}
 

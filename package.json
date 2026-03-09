@@ -43,66 +43,6 @@
         "category": "NestForge"
       },
       {
-        "command": "nestforge.createModule",
-        "title": "Create Module",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createService",
-        "title": "Create Service",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createResource",
-        "title": "Create Resource",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createController",
-        "title": "Create Controller",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createResolver",
-        "title": "Create Resolver",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createGateway",
-        "title": "Create Gateway",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createGuard",
-        "title": "Create Guard",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createInterceptor",
-        "title": "Create Interceptor",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createFilter",
-        "title": "Create Filter",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createPipe",
-        "title": "Create Pipe",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createMiddleware",
-        "title": "Create Middleware",
-        "category": "NestForge"
-      },
-      {
-        "command": "nestforge.createDecorator",
-        "title": "Create Decorator",
-        "category": "NestForge"
-      },
-      {
         "command": "nestforge.dbInit",
         "title": "Init",
         "category": "NestForge DB"
@@ -151,54 +91,9 @@
           "group": "NestForge@1"
         },
         {
-          "command": "nestforge.createController",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@2"
-        },
-        {
-          "command": "nestforge.createService",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@3"
-        },
-        {
-          "command": "nestforge.createResource",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@4"
-        },
-        {
-          "command": "nestforge.createGuard",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@5"
-        },
-        {
-          "command": "nestforge.createInterceptor",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@6"
-        },
-        {
-          "command": "nestforge.createFilter",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@7"
-        },
-        {
-          "command": "nestforge.createPipe",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@8"
-        },
-        {
-          "command": "nestforge.createMiddleware",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@9"
-        },
-        {
-          "command": "nestforge.createDecorator",
-          "when": "explorerResourceIsFolder",
-          "group": "NestForge@10"
-        },
-        {
           "command": "nestforge.generate",
           "when": "explorerResourceIsFolder",
-          "group": "NestForge@11"
+          "group": "NestForge@2"
         }
       ]
     },
