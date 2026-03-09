@@ -2,6 +2,19 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.4.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.3.0...nestforge-v0.4.0) (2026-03-09)
+
+
+### Features
+
+* added Marketplace publishing workflow and update contributing documentation ([d7f584c](https://github.com/vernonthedev/nestforge-extension/commit/d7f584caef9f1ab785291b010d264dc0e6619b11))
+* enhanced publishing workflow to support Open VSX and update documentation ([7a9a54a](https://github.com/vernonthedev/nestforge-extension/commit/7a9a54a290faddf4cb8c98bf296ae30549612dcb))
+
+
+### Bug Fixes
+
+* add missing publisher field in package.json ([d059518](https://github.com/vernonthedev/nestforge-extension/commit/d059518046cd2f7833bbb67feba947035da3568d))
+
 ## [0.3.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.2.0...nestforge-v0.3.0) (2026-03-09)
 
 
