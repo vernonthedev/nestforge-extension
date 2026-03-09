@@ -5,6 +5,7 @@
   "version": "0.2.0",
   "author": "vernonthedev",
   "license": "Apache-2.0",
+  "icon": "assets/logo.png",
   "packageManager": "pnpm@10.30.1",
   "repository": {
     "type": "git",

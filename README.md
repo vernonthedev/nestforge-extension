@@ -1,4 +1,6 @@
-# NestForge
+<p align="center">
+  <img src="./assets/nestforge-logo.svg" alt="NestForge logo" width="160" />
+</p>
 
 NestForge is a VS Code extension for driving the `nestforge` CLI from the editor. It provides guided scaffolding, generator workflows, database operations, Rust utility commands, onboarding, and workspace-aware context menus for NestForge projects.
 
