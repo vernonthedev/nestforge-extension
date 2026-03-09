@@ -1,4 +1,4 @@
-name: Release Please
+name: Auto Release
 
 on:
   workflow_run:
