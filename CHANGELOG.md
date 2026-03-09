@@ -2,6 +2,15 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.3.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.2.0...nestforge-v0.3.0) (2026-03-09)
+
+
+### Features
+
+* add NestForge extension quickstart guide ([9fed900](https://github.com/vernonthedev/nestforge-extension/commit/9fed9006e531a99a4da146cacc992002156e73a8))
+* add Quick Start Guide link to README ([0024d51](https://github.com/vernonthedev/nestforge-extension/commit/0024d51f3fdd8d2319e2c1c4809d3fe9aacf723a))
+* update license to Apache-2.0 and add contributing guide ([a364c80](https://github.com/vernonthedev/nestforge-extension/commit/a364c806a022fa617083f15abb19b4d75466d9d4))
+
 ## [0.2.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.1.1...nestforge-v0.2.0) (2026-03-09)
 
 

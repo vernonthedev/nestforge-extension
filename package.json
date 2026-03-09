@@ -2,7 +2,7 @@
   "name": "nestforge",
   "displayName": "NestForge",
   "description": "VS Code extension for NestForge CLI scaffolding, generators, database workflows, and Rust utility commands.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "vernonthedev",
   "license": "Apache-2.0",
   "icon": "assets/logo.png",
