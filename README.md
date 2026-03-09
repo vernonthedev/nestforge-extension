@@ -41,9 +41,14 @@ The extension then runs the matching `nestforge g ...` command and refreshes the
 Right-click a folder in the Explorer to access:
 
 - `NestForge: Generate Here`
+- `NestForge: Create Controller`
+- `NestForge: Create Service`
+- `NestForge: Create Resource`
+- `NestForge: Create Guard`
 - `NestForge: Generate`
 
 `Generate Here` opens the normal generator selection flow scoped to the selected folder. If the folder is a real Nest module such as `src/users`, module-aware generators will target `users` automatically. Non-module generators such as guards and pipes run relative to the selected folder.
+`DTO` is not listed as a standalone command because the local `nestforge` CLI does not expose a `dto` generator. DTO-related files come from `resource` generation rather than a direct `nestforge g dto` command.
 
 ### Database Dashboard
 
