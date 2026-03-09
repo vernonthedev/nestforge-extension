@@ -2,6 +2,11 @@
 
 NestForge Toolkit is a VS Code extension for driving the `nestforge` CLI from the editor. It provides guided scaffolding, generator workflows, database operations, Rust utility commands, onboarding, and workspace-aware context menus for NestForge projects.
 
+## Current Release
+
+- Latest version: `0.0.1` <!-- x-release-please-version -->
+- Release notes: see [CHANGELOG.md](./CHANGELOG.md) and [GitHub Releases](https://github.com/vernonthedev/nestforge-extension/releases)
+
 ## Features
 
 ### Scaffolding Wizard
@@ -121,8 +126,8 @@ This extension contributes the following settings:
 - Drift detection currently relies on parsing `nestforge db status` output for keywords such as `drift`, `out of sync`, and `up to date`. If the CLI output format changes, the status bar mapping may need to be updated.
 - The extension assumes `nestforge` and `cargo` can be executed in the workspace shell environment configured by VS Code.
 
-## Release Notes
+## Release Workflow
 
-### 0.0.1
-
-Initial toolkit release with command palette workflows, Explorer context menus, DB status integration, onboarding, logging, and Rust formatting support.
+- Merge conventional commits into `main` using prefixes such as `feat:`, `fix:`, and `feat!:` for breaking changes.
+- GitHub Actions opens or updates a release PR through `release-please`.
+- Merging that release PR updates `package.json`, `CHANGELOG.md`, and the version marker in this README before creating the GitHub release.

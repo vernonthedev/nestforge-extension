@@ -4,6 +4,16 @@
   "description": "VS Code toolkit for NestForge CLI scaffolding, generators, database workflows, and Rust utility commands.",
   "version": "0.0.1",
   "author": "vernonthedev",
+  "license": "MIT",
+  "packageManager": "pnpm@10.30.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vernonthedev/nestforge-extension.git"
+  },
+  "homepage": "https://github.com/vernonthedev/nestforge-extension#readme",
+  "bugs": {
+    "url": "https://github.com/vernonthedev/nestforge-extension/issues"
+  },
   "engines": {
     "vscode": "^1.109.0"
   },

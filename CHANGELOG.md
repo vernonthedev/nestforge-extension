@@ -5,6 +5,7 @@ All notable changes to the "nestforge" extension will be documented in this file
 ## [Unreleased]
 
 - Updated the README to document the NestForge Toolkit command surface, generator wizard, context menus, DB dashboard, settings, and walkthrough support.
+- Added GitHub Actions CI and release automation so conventional commits can drive version bumps, changelog updates, and README version sync.
 
 ## [0.0.1]
 
