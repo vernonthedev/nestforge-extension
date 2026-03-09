@@ -45,6 +45,11 @@ Right-click a folder in the Explorer to access:
 - `NestForge: Create Service`
 - `NestForge: Create Resource`
 - `NestForge: Create Guard`
+- `NestForge: Create Interceptor`
+- `NestForge: Create Filter`
+- `NestForge: Create Pipe`
+- `NestForge: Create Middleware`
+- `NestForge: Create Decorator`
 - `NestForge: Generate`
 
 `Generate Here` opens the normal generator selection flow scoped to the selected folder. If the folder is a real Nest module such as `src/users`, module-aware generators will target `users` automatically. Non-module generators such as guards and pipes run relative to the selected folder.

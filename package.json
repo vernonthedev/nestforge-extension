@@ -171,9 +171,34 @@
           "group": "NestForge@5"
         },
         {
-          "command": "nestforge.generate",
+          "command": "nestforge.createInterceptor",
+          "when": "explorerResourceIsFolder",
+          "group": "NestForge@6"
+        },
+        {
+          "command": "nestforge.createFilter",
+          "when": "explorerResourceIsFolder",
+          "group": "NestForge@7"
+        },
+        {
+          "command": "nestforge.createPipe",
+          "when": "explorerResourceIsFolder",
+          "group": "NestForge@8"
+        },
+        {
+          "command": "nestforge.createMiddleware",
           "when": "explorerResourceIsFolder",
           "group": "NestForge@9"
+        },
+        {
+          "command": "nestforge.createDecorator",
+          "when": "explorerResourceIsFolder",
+          "group": "NestForge@10"
+        },
+        {
+          "command": "nestforge.generate",
+          "when": "explorerResourceIsFolder",
+          "group": "NestForge@11"
         }
       ]
     },
