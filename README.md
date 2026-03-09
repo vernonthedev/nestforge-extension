@@ -2,6 +2,21 @@
   <img src="./assets/logo.png" alt="NestForge logo" width="160" />
 </p>
 
+<p align="center">
+  <a href="https://github.com/vernonthedev/nestforge-extension/releases">
+    <img src="https://img.shields.io/github/v/release/vernonthedev/nestforge-extension?display_name=tag&label=release" alt="GitHub release" />
+  </a>
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License: Apache 2.0" />
+  </a>
+  <a href="https://github.com/vernonthedev/nestforge-extension/actions/workflows/test.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/vernonthedev/nestforge-extension/test.yml?branch=main&label=test%20and%20lint" alt="Test and Lint" />
+  </a>
+  <a href="https://github.com/vernonthedev/nestforge-extension/actions/workflows/release.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/vernonthedev/nestforge-extension/release.yml?branch=main&label=auto%20release" alt="Auto Release" />
+  </a>
+</p>
+
 NestForge is a VS Code extension for driving the `nestforge` CLI from the editor. It provides guided scaffolding, generator workflows, database operations, Rust utility commands, onboarding, and workspace-aware context menus for NestForge projects.
 
 ## Current Release
