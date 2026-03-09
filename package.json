@@ -4,6 +4,7 @@
   "description": "VS Code extension for NestForge CLI scaffolding, generators, database workflows, and Rust utility commands.",
   "version": "0.3.0",
   "author": "vernonthedev",
+  "publisher": "vernonthedev",
   "license": "Apache-2.0",
   "icon": "assets/logo.png",
   "packageManager": "pnpm@10.30.1",
