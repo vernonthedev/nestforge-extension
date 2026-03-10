@@ -3,6 +3,8 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { classifyHeartbeatResult, runInitialConnectionSequence } from '../connection-manager';
+import type { CliResult } from '../cli-manager';
 import { buildCliArgs, classifyDbStatusOutput, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from '../nestforge-core';
 
 test('buildCliArgs expands booleans, scalars, arrays, and skips falsy flags', () => {
@@ -49,6 +51,65 @@ test('classifyDbStatusOutput detects healthy output', () => {
 
 test('classifyDbStatusOutput falls back to unknown output', () => {
 	assert.equal(classifyDbStatusOutput('status response without known keywords'), 'unknown');
+});
+
+test('classifyHeartbeatResult reuses database output classification', () => {
+	const result: CliResult = {
+		commandLine: 'nestforge db status',
+		exitCode: 0,
+		stdout: 'Applied: 1\nPending: 0\nDrift: 0',
+		stderr: '',
+	};
+
+	assert.equal(classifyHeartbeatResult(result, classifyDbStatusOutput), 'healthy');
+});
+
+test('runInitialConnectionSequence waits for grace period and retries before succeeding', async () => {
+	const delays: number[] = [];
+	let attempts = 0;
+
+	const result = await runInitialConnectionSequence({
+		gracePeriodMs: 3000,
+		maxAttempts: 3,
+		retryDelayMs: 1000,
+		timeoutMs: 5000,
+		delay: async (ms) => {
+			delays.push(ms);
+		},
+		heartbeat: async () => {
+			attempts += 1;
+			if (attempts < 3) {
+				throw new Error(`attempt ${attempts} failed`);
+			}
+			return 'healthy';
+		},
+	});
+
+	assert.deepEqual(delays, [3000, 1000, 1000]);
+	assert.equal(result.state, 'connected');
+	assert.equal(result.attempts, 3);
+	assert.equal(result.kind, 'healthy');
+});
+
+test('runInitialConnectionSequence reports failure only after the final attempt', async () => {
+	let attempts = 0;
+
+	const result = await runInitialConnectionSequence({
+		gracePeriodMs: 3000,
+		maxAttempts: 3,
+		retryDelayMs: 1000,
+		timeoutMs: 5000,
+		delay: async () => undefined,
+		heartbeat: async () => {
+			attempts += 1;
+			throw new Error(`attempt ${attempts} failed`);
+		},
+	});
+
+	assert.equal(attempts, 3);
+	assert.equal(result.state, 'failed');
+	assert.equal(result.attempts, 3);
+	assert.match(result.error.message, /attempt 3 failed/);
 });
 
 test('findModuleCandidatesInWorkspace prefers src and returns sorted unique candidates', async () => {

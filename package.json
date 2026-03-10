@@ -117,6 +117,12 @@
           "default": 300000,
           "minimum": 60000,
           "description": "Polling interval in milliseconds for database status checks."
+        },
+        "nestforge.status.connectionTimeout": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 1000,
+          "description": "Timeout in milliseconds for each initial NestForge database connection check."
         }
       }
     },

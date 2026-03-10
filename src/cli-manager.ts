@@ -9,6 +9,7 @@ export interface CliExecutionOptions {
 	revealOutputOnError?: boolean;
 	showSuccessMessage?: string;
 	silent?: boolean;
+	timeoutMs?: number;
 }
 
 export interface CliResult {
@@ -26,6 +27,7 @@ interface CommandRequest {
 interface ChildProcessLike extends EventEmitter {
 	stdout: EventEmitter;
 	stderr: EventEmitter;
+	kill?: (signal?: NodeJS.Signals | number) => boolean;
 }
 
 interface CliManagerDependencies {
@@ -80,7 +82,8 @@ export class CliManager {
 		options: CliExecutionOptions = {},
 	): Promise<CliResult> {
 		const args = buildCliArgs(request.args, request.flags);
-		const task = () => this.spawnProcess(executable, args, options.cwd, options.revealOutputOnError ?? true);
+		const taskWithTimeout = () =>
+			this.spawnProcess(executable, args, options.cwd, options.revealOutputOnError ?? true, options.timeoutMs);
 		const result = options.progressTitle
 			? await this.dependencies.withProgress(
 				{
@@ -88,9 +91,9 @@ export class CliManager {
 					title: options.progressTitle,
 					cancellable: false,
 				},
-				task,
+				taskWithTimeout,
 			)
-			: await task();
+			: await taskWithTimeout();
 
 		if (result.exitCode !== 0) {
 			if (!options.silent) {
@@ -111,6 +114,7 @@ export class CliManager {
 		args: string[],
 		cwd: string | undefined,
 		revealOutputOnError: boolean,
+		timeoutMs?: number,
 	): Promise<CliResult> {
 		return new Promise((resolve, reject) => {
 			const processHandle = this.dependencies.spawn(executable, args, {
@@ -121,9 +125,23 @@ export class CliManager {
 
 			let stdout = '';
 			let stderr = '';
+			let settled = false;
+			let timeoutHandle: NodeJS.Timeout | undefined;
 			const commandLine = [executable, ...args].join(' ');
 
 			this.output.appendLine(`> ${commandLine}`);
+
+			const finish = (callback: () => void) => {
+				if (settled) {
+					return;
+				}
+
+				settled = true;
+				if (timeoutHandle) {
+					clearTimeout(timeoutHandle);
+				}
+				callback();
+			};
 
 			processHandle.stdout.on('data', (chunk: Buffer | string) => {
 				const text = chunk.toString();
@@ -138,27 +156,45 @@ export class CliManager {
 			});
 
 			processHandle.on('error', (error) => {
-				this.output.appendLine(String(error));
-				if (revealOutputOnError) {
-					this.output.show(true);
-				}
-				reject(error);
+				finish(() => {
+					this.output.appendLine(String(error));
+					if (revealOutputOnError) {
+						this.output.show(true);
+					}
+					reject(error);
+				});
 			});
 
 			processHandle.on('close', (exitCode) => {
-				const result: CliResult = {
-					commandLine,
-					exitCode: exitCode ?? -1,
-					stdout: stdout.trim(),
-					stderr: stderr.trim(),
-				};
+				finish(() => {
+					const result: CliResult = {
+						commandLine,
+						exitCode: exitCode ?? -1,
+						stdout: stdout.trim(),
+						stderr: stderr.trim(),
+					};
 
-				if (result.exitCode !== 0 && revealOutputOnError) {
-					this.output.show(true);
-				}
+					if (result.exitCode !== 0 && revealOutputOnError) {
+						this.output.show(true);
+					}
 
-				resolve(result);
+					resolve(result);
+				});
 			});
+
+			if (timeoutMs && timeoutMs > 0) {
+				timeoutHandle = setTimeout(() => {
+					finish(() => {
+						processHandle.kill?.();
+						const error = new Error(`Command timed out after ${timeoutMs}ms: ${commandLine}`);
+						this.output.appendLine(error.message);
+						if (revealOutputOnError) {
+							this.output.show(true);
+						}
+						reject(error);
+					});
+				}, timeoutMs);
+			}
 		});
 	}
 }

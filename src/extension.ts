@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { CliManager } from './cli-manager';
+import { classifyHeartbeatResult, runInitialConnectionSequence } from './connection-manager';
 import { classifyDbStatusOutput, fileExists, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from './nestforge-core';
 import { registerOnboarding } from './onboarding';
 
@@ -23,7 +24,7 @@ interface GeneratorCategoryOption {
 }
 
 interface DbStatusState {
-	kind: 'healthy' | 'pending' | 'warning' | 'unknown' | 'error';
+	kind: 'initializing' | 'healthy' | 'pending' | 'warning' | 'unknown' | 'error';
 	text: string;
 	tooltip: string;
 }
@@ -74,6 +75,8 @@ class NestForgeExtension {
 	private readonly statusBar: vscode.StatusBarItem;
 	private dbStatusTimer: NodeJS.Timeout | undefined;
 	private dbStatusRunning = false;
+	private dbStatusInitialized = false;
+	private dbStatusInitialization: Promise<void> | undefined;
 
 	public constructor(private readonly context: vscode.ExtensionContext) {
 		this.cliManager = new CliManager(vscode.workspace.getConfiguration('nestforge'));
@@ -81,9 +84,9 @@ class NestForgeExtension {
 		this.statusBar.command = 'nestforge.dbStatus';
 		this.statusBar.name = 'NestForge DB Status';
 		this.setDbStatus({
-			kind: 'unknown',
-			text: 'NestForge DB',
-			tooltip: 'Database status has not been checked yet.',
+			kind: 'initializing',
+			text: 'NestForge: Initializing...',
+			tooltip: 'NestForge is waiting for the local database services to become reachable.',
 		});
 	}
 
@@ -315,83 +318,36 @@ class NestForgeExtension {
 	}
 
 	private async updateDbStatus(notifyOnSuccess: boolean): Promise<void> {
+		if (this.dbStatusInitialization && !this.dbStatusInitialized) {
+			await this.dbStatusInitialization;
+			if (!this.dbStatusInitialized && !notifyOnSuccess) {
+				return;
+			}
+		}
+
 		if (this.dbStatusRunning) {
 			return;
 		}
 
-		const workspacePath = this.getWorkspacePath();
+		const workspacePath = this.getPrimaryWorkspacePath();
 		if (!workspacePath || !this.isDbStatusEnabled()) {
 			this.setDbStatus({
 				kind: 'unknown',
-				text: 'NestForge DB',
-				tooltip: 'Database status checks are disabled or no workspace is open.',
+				text: 'NestForge: Ready',
+				tooltip: 'Open a workspace folder and enable DB status checks to monitor database state.',
 			});
 			return;
 		}
 
 		this.dbStatusRunning = true;
 		try {
-			const result = await this.cliManager.runNestForge(
-				{ args: ['db', 'status'] },
-				{
-					cwd: workspacePath,
-					silent: true,
-					revealOutputOnError: false,
-				},
-			);
-
-			const statusKind = classifyDbStatusOutput(`${result.stdout}\n${result.stderr}`);
-			if (statusKind === 'warning') {
-				this.setDbStatus({
-					kind: 'warning',
-					text: 'NestForge DB Needs Review',
-					tooltip: 'Database changes were detected that need attention. Click to inspect status.',
-				});
-				if (notifyOnSuccess) {
-					vscode.window.showWarningMessage(
-						'NestForge found unapplied or conflicting database changes. Open NestForge Logs for details.',
-					);
-				}
-				return;
-			}
-
-			if (statusKind === 'pending') {
-				this.setDbStatus({
-					kind: 'pending',
-					text: 'NestForge DB Pending',
-					tooltip: 'Database connection is working, but migrations are still pending.',
-				});
-				if (notifyOnSuccess) {
-					vscode.window.showInformationMessage('NestForge database is connected. Pending migrations are available.');
-				}
-				return;
-			}
-
-			if (statusKind === 'healthy') {
-				this.setDbStatus({
-					kind: 'healthy',
-					text: 'NestForge DB OK',
-					tooltip: 'Database schema is in sync with migrations.',
-				});
-				if (notifyOnSuccess) {
-					vscode.window.showInformationMessage('NestForge database is in sync.');
-				}
-				return;
-			}
-
-			this.setDbStatus({
-				kind: 'unknown',
-				text: 'NestForge DB Unknown',
-				tooltip: 'Database status returned an unrecognized response. Check NestForge Logs.',
-			});
-			if (notifyOnSuccess) {
-				vscode.window.showInformationMessage('NestForge database status completed. Review NestForge Logs for details.');
-			}
+			const statusKind = await this.readDbStatusKind(workspacePath, this.getConnectionTimeoutMs());
+			this.applyDbStatusKind(statusKind, notifyOnSuccess);
 		} catch (error) {
 			this.setDbStatus({
 				kind: 'error',
-				text: 'NestForge DB Error',
-				tooltip: 'Database status check failed. Click to retry and review logs.',
+				text: 'NestForge: DB Error',
+				tooltip: 'Database status check failed. Click to retry after verifying local services are running.',
 			});
 			if (notifyOnSuccess) {
 				vscode.window.showErrorMessage(error instanceof Error ? error.message : 'Database status check failed.');
@@ -436,15 +392,23 @@ class NestForgeExtension {
 		}
 
 		this.statusBar.show();
+		this.dbStatusInitialized = false;
+		this.setDbStatus({
+			kind: 'initializing',
+			text: 'NestForge: Initializing...',
+			tooltip: 'NestForge is checking whether the local database services are ready.',
+		});
+
 		const intervalMs = vscode.workspace.getConfiguration('nestforge').get<number>('dbStatus.intervalMs', 300000);
+		this.dbStatusInitialization = this.initializeDbStatus();
 		this.dbStatusTimer = setInterval(() => {
 			void this.updateDbStatus(false);
 		}, intervalMs);
-		void this.updateDbStatus(false);
 	}
 
 	private setDbStatus(state: DbStatusState): void {
 		const iconByKind: Record<DbStatusState['kind'], string> = {
+			initializing: '$(sync~spin)',
 			healthy: '$(pass-filled)',
 			pending: '$(clock)',
 			warning: '$(warning)',
@@ -460,6 +424,103 @@ class NestForgeExtension {
 				: state.kind === 'error'
 					? new vscode.ThemeColor('statusBarItem.errorBackground')
 					: undefined;
+	}
+
+	private async initializeDbStatus(): Promise<void> {
+		const workspacePath = this.getPrimaryWorkspacePath();
+		if (!workspacePath || !this.isDbStatusEnabled()) {
+			this.dbStatusInitialized = true;
+			this.setDbStatus({
+				kind: 'unknown',
+				text: 'NestForge: Ready',
+				tooltip: 'Open a workspace folder and enable DB status checks to monitor database state.',
+			});
+			return;
+		}
+
+		const result = await runInitialConnectionSequence({
+			timeoutMs: this.getConnectionTimeoutMs(),
+			heartbeat: (timeoutMs) => this.readDbStatusKind(workspacePath, timeoutMs),
+		});
+
+		if (result.state === 'connected') {
+			this.applyDbStatusKind(result.kind, false);
+			this.dbStatusInitialized = true;
+			return;
+		}
+
+		this.dbStatusInitialized = true;
+		this.setDbStatus({
+			kind: 'error',
+			text: 'NestForge: DB Error',
+			tooltip: 'NestForge could not verify database connectivity after multiple startup attempts.',
+		});
+	}
+
+	private async readDbStatusKind(workspacePath: string, timeoutMs: number): Promise<'healthy' | 'pending' | 'warning' | 'unknown'> {
+		const result = await this.cliManager.runNestForge(
+			{ args: ['db', 'status'] },
+			{
+				cwd: workspacePath,
+				silent: true,
+				revealOutputOnError: false,
+				timeoutMs,
+			},
+		);
+
+		return classifyHeartbeatResult(result, classifyDbStatusOutput);
+	}
+
+	private applyDbStatusKind(
+		statusKind: 'healthy' | 'pending' | 'warning' | 'unknown',
+		notifyOnSuccess: boolean,
+	): void {
+		if (statusKind === 'warning') {
+			this.setDbStatus({
+				kind: 'warning',
+				text: 'NestForge: Needs Review',
+				tooltip: 'Database changes were detected that need attention. Click to inspect status.',
+			});
+			if (notifyOnSuccess) {
+				void vscode.window.showWarningMessage(
+					'NestForge found unapplied or conflicting database changes. Open NestForge Logs for details.',
+				);
+			}
+			return;
+		}
+
+		if (statusKind === 'pending') {
+			this.setDbStatus({
+				kind: 'pending',
+				text: 'NestForge: Connected',
+				tooltip: 'Database connection is working, but migrations are still pending.',
+			});
+			if (notifyOnSuccess) {
+				void vscode.window.showInformationMessage('NestForge database is connected. Pending migrations are available.');
+			}
+			return;
+		}
+
+		if (statusKind === 'healthy') {
+			this.setDbStatus({
+				kind: 'healthy',
+				text: 'NestForge: Connected',
+				tooltip: 'Database schema is in sync with migrations.',
+			});
+			if (notifyOnSuccess) {
+				void vscode.window.showInformationMessage('NestForge database is in sync.');
+			}
+			return;
+		}
+
+		this.setDbStatus({
+			kind: 'unknown',
+			text: 'NestForge: Ready',
+			tooltip: 'Database status returned an unrecognized response. Check NestForge Logs for details.',
+		});
+		if (notifyOnSuccess) {
+			void vscode.window.showInformationMessage('NestForge database status completed. Review NestForge Logs for details.');
+		}
 	}
 
 	private async executeNestForge(
@@ -562,8 +623,16 @@ class NestForgeExtension {
 		return folder.uri.fsPath;
 	}
 
+	private getPrimaryWorkspacePath(): string | undefined {
+		return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+	}
+
 	private isDbStatusEnabled(): boolean {
 		return vscode.workspace.getConfiguration('nestforge').get<boolean>('dbStatus.enabled', true);
+	}
+
+	private getConnectionTimeoutMs(): number {
+		return vscode.workspace.getConfiguration('nestforge').get<number>('status.connectionTimeout', 5000);
 	}
 }
 
