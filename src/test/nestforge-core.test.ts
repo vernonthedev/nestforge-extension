@@ -6,6 +6,7 @@ import * as path from 'node:path';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from '../connection-manager';
 import type { CliResult } from '../cli-manager';
 import { inferTransportKinds, parseEnvText, resolveEnvSchema } from '../env-schema';
+import { ensureRustGitignore } from '../git-support';
 import { scanWorkspaceModuleGraph } from '../module-graph';
 import { buildCliArgs, classifyDbStatusOutput, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from '../nestforge-core';
 import { injectCargoDependency, injectNotificationsModuleIntoRustEntrypoint, setupMidnightNotify } from '../scaffold-integrations';
@@ -120,6 +121,20 @@ test('parseEnvText returns parsed key/value entries', () => {
 
 	assert.equal(entries.get('DATABASE_URL')?.value, 'postgres://localhost:5432/app');
 	assert.equal(entries.get('HTTP_PORT')?.line, 2);
+});
+
+test('ensureRustGitignore appends the target ignore rule once', async () => {
+	const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'nestforge-gitignore-'));
+	await fs.writeFile(path.join(tempRoot, '.gitignore'), 'dist/\n');
+
+	try {
+		await ensureRustGitignore(tempRoot);
+		await ensureRustGitignore(tempRoot);
+		const gitignore = await fs.readFile(path.join(tempRoot, '.gitignore'), 'utf8');
+		assert.equal(gitignore, 'dist/\n/target\n');
+	} finally {
+		await fs.rm(tempRoot, { recursive: true, force: true });
+	}
 });
 
 test('injectCargoDependency adds Midnight Notify under an existing dependencies section', () => {
@@ -276,6 +291,7 @@ test('declared command definitions cover the expected command ids', () => {
 			'nestforge.dbStatus',
 			'nestforge.docs',
 			'nestforge.formatRust',
+			'nestforge.initGit',
 			'nestforge.openLogs',
 			'nestforge.showModuleGraph',
 			'nestforge.onboarding.openDocs',

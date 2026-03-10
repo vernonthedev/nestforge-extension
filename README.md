@@ -90,6 +90,7 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 
 - `NestForge: OpenAPI Docs` opens the configured docs URL.
 - `NestForge: Format Rust` runs `cargo fmt`.
+- `NestForge: Initialize Git Repository` bootstraps Git, ensures `/target` is ignored, and attempts the initial scaffold commit.
 - `NestForge: Open Logs` reveals the `NestForge Logs` output channel.
 - `NestForge: Show Module Graph` opens a visual dependency map for Rust modules under `src/`.
 

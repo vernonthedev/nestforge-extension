@@ -70,6 +70,11 @@
         "category": "NestForge"
       },
       {
+        "command": "nestforge.initGit",
+        "title": "Initialize Git Repository",
+        "category": "NestForge"
+      },
+      {
         "command": "nestforge.openLogs",
         "title": "Open Logs",
         "category": "NestForge"
@@ -157,6 +162,17 @@
             "description": "Use the generator wizard or the Explorer context menu to create and wire resources.",
             "media": {
               "markdown": "docs/walkthroughs/generate-feature.md"
+            }
+          },
+          {
+            "id": "nestforge.gettingStarted.git",
+            "title": "Initialize Git repository",
+            "description": "Create a Git repository and baseline commit for the generated NestForge project.",
+            "completionEvents": [
+              "onContext:nestforge.gitInitialized"
+            ],
+            "media": {
+              "markdown": "docs/walkthroughs/init-git.md"
             }
           },
           {

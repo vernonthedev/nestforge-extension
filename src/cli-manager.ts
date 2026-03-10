@@ -76,6 +76,27 @@ export class CliManager {
 		return this.runExecutable(this.configuration.get<string>('cargoPath', 'cargo'), request, options);
 	}
 
+	public async runGit(request: CommandRequest, options: CliExecutionOptions = {}): Promise<CliResult> {
+		return this.runExecutable('git', request, options);
+	}
+
+	public async isGitAvailable(): Promise<boolean> {
+		try {
+			await this.runExecutable(
+				'git',
+				{ args: ['--version'] },
+				{
+					revealOutputOnError: false,
+					silent: true,
+					timeoutMs: 5000,
+				},
+			);
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
 	public async runExecutable(
 		executable: string,
 		request: CommandRequest,

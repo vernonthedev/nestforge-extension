@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { CliManager } from './cli-manager';
+import { initializeGitRepository } from './commands';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from './connection-manager';
 import { createEnvDiagnosticCollection, EnvCodeActionProvider, provideEnvHover, updateEnvDiagnostics } from './env-support';
 import { getModuleGraphWebviewHtml, scanWorkspaceModuleGraph } from './module-graph';
@@ -118,6 +119,7 @@ class NestForgeExtension {
 			vscode.commands.registerCommand('nestforge.dbStatus', () => this.updateDbStatus(true)),
 			vscode.commands.registerCommand('nestforge.docs', () => this.openDocs()),
 			vscode.commands.registerCommand('nestforge.formatRust', () => this.formatRust()),
+			vscode.commands.registerCommand('nestforge.initGit', () => this.initGitRepository()),
 			vscode.commands.registerCommand('nestforge.openLogs', () => this.cliManager.output.show(true)),
 			vscode.commands.registerCommand('nestforge.showModuleGraph', () => this.showModuleGraph()),
 			vscode.languages.registerCodeActionsProvider(
@@ -439,6 +441,22 @@ class NestForgeExtension {
 		);
 
 		await vscode.commands.executeCommand('workbench.files.action.refreshFilesExplorer');
+	}
+
+	private async initGitRepository(): Promise<void> {
+		const workspacePath = this.getWorkspacePath();
+		if (!workspacePath) {
+			return;
+		}
+
+		const result = await initializeGitRepository(workspacePath, this.cliManager);
+		if (!result.initialized) {
+			return;
+		}
+
+		if (result.committed) {
+			void vscode.window.showInformationMessage('NestForge initialized Git and created the initial scaffold commit.');
+		}
 	}
 
 	private async showModuleGraph(): Promise<void> {

@@ -1,15 +1,22 @@
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { fileExists } from './nestforge-core';
 
 export function registerOnboarding(context: vscode.ExtensionContext): vscode.Disposable[] {
 	const disposables: vscode.Disposable[] = [];
 
 	const refreshContexts = async () => {
+		const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 		await vscode.commands.executeCommand('setContext', 'nestforge.hasWorkspace', Boolean(vscode.workspace.workspaceFolders?.length));
 		await vscode.commands.executeCommand(
 			'setContext',
 			'nestforge.cliConfigured',
 			Boolean(vscode.workspace.getConfiguration('nestforge').get<string>('cliPath')),
+		);
+		await vscode.commands.executeCommand(
+			'setContext',
+			'nestforge.gitInitialized',
+			Boolean(workspacePath && await fileExists(path.join(workspacePath, '.git'))),
 		);
 	};
 
