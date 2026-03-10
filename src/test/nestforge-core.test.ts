@@ -6,6 +6,7 @@ import * as path from 'node:path';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from '../connection-manager';
 import type { CliResult } from '../cli-manager';
 import { inferTransportKinds, parseEnvText, resolveEnvSchema } from '../env-schema';
+import { scanWorkspaceModuleGraph } from '../module-graph';
 import { buildCliArgs, classifyDbStatusOutput, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from '../nestforge-core';
 import { injectCargoDependency, injectNotificationsModuleIntoRustEntrypoint, setupMidnightNotify } from '../scaffold-integrations';
 
@@ -202,6 +203,43 @@ test('resolveEnvSchema includes transport-specific variables', async () => {
 	}
 });
 
+test('scanWorkspaceModuleGraph detects Rust modules and internal dependencies', async () => {
+	const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'nestforge-graph-'));
+	await fs.mkdir(path.join(tempRoot, 'src', 'notifications', 'services'), { recursive: true });
+	await fs.mkdir(path.join(tempRoot, 'src', 'notifications', 'controllers'), { recursive: true });
+	await fs.writeFile(path.join(tempRoot, 'src', 'main.rs'), 'pub mod notifications;\nfn main() {}\n');
+	await fs.writeFile(path.join(tempRoot, 'src', 'notifications', 'mod.rs'), 'pub mod services;\npub mod controllers;\n');
+	await fs.writeFile(path.join(tempRoot, 'src', 'notifications', 'services', 'mod.rs'), 'pub mod notification_service;\n');
+	await fs.writeFile(
+		path.join(tempRoot, 'src', 'notifications', 'services', 'notification_service.rs'),
+		'use crate::notifications::controllers::notification_controller::NotificationController;\n',
+	);
+	await fs.writeFile(path.join(tempRoot, 'src', 'notifications', 'controllers', 'mod.rs'), 'pub mod notification_controller;\n');
+	await fs.writeFile(
+		path.join(tempRoot, 'src', 'notifications', 'controllers', 'notification_controller.rs'),
+		'use crate::notifications::services::notification_service::NotificationService;\n',
+	);
+
+	try {
+		const graph = await scanWorkspaceModuleGraph(tempRoot);
+		assert.ok(graph.nodes.some((node) => node.id === 'notifications' && node.kind === 'module'));
+		assert.ok(graph.nodes.some((node) => node.id === 'notifications::services::notification_service' && node.kind === 'service'));
+		assert.ok(graph.edges.some((edge) => edge.from === 'main' && edge.to === 'notifications' && edge.kind === 'contains'));
+		assert.ok(
+			graph.edges.some(
+				(edge) =>
+					edge.from === 'notifications::controllers::notification_controller'
+					&& edge.to === 'notifications::services::notification_service'
+					&& edge.kind === 'uses',
+			),
+		);
+		assert.ok(graph.nodes.some((node) => node.id === 'notifications::controllers::notification_controller' && node.inCycle));
+		assert.ok(graph.nodes.some((node) => node.id === 'notifications::services::notification_service' && node.inCycle));
+	} finally {
+		await fs.rm(tempRoot, { recursive: true, force: true });
+	}
+});
+
 test('findModuleCandidatesInWorkspace prefers src and returns sorted unique candidates', async () => {
 	const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'nestforge-test-'));
 	const srcRoot = path.join(tempRoot, 'src');
@@ -239,6 +277,7 @@ test('declared command definitions cover the expected command ids', () => {
 			'nestforge.docs',
 			'nestforge.formatRust',
 			'nestforge.openLogs',
+			'nestforge.showModuleGraph',
 			'nestforge.onboarding.openDocs',
 		],
 	);

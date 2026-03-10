@@ -75,6 +75,11 @@
         "category": "NestForge"
       },
       {
+        "command": "nestforge.showModuleGraph",
+        "title": "Show Module Graph",
+        "category": "NestForge"
+      },
+      {
         "command": "nestforge.onboarding.openDocs",
         "title": "Open Extension Docs",
         "category": "NestForge"

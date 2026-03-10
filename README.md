@@ -91,6 +91,7 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 - `NestForge: OpenAPI Docs` opens the configured docs URL.
 - `NestForge: Format Rust` runs `cargo fmt`.
 - `NestForge: Open Logs` reveals the `NestForge Logs` output channel.
+- `NestForge: Show Module Graph` opens a visual dependency map for Rust modules under `src/`.
 
 ### Rust Snippets
 
@@ -108,6 +109,13 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 - Long-running operations such as DB migrations and project formatting run with `vscode.window.withProgress`.
 - CLI stdout and stderr are streamed to the `NestForge Logs` output channel.
 - stderr is shown automatically on command failures so CLI errors stay visible.
+
+### Module Graph
+
+- `NestForge: Show Module Graph` scans Rust modules under `src/` and renders a directed graph in a webview.
+- Node clicks open the backing file in the editor.
+- Circular dependencies are highlighted in red.
+- A `Refresh Graph` button reloads the current workspace structure.
 
 ### Walkthrough
 
@@ -133,6 +141,7 @@ The extension includes a getting-started walkthrough that links directly to:
 - `NestForge: OpenAPI Docs`
 - `NestForge: Format Rust`
 - `NestForge: Open Logs`
+- `NestForge: Show Module Graph`
 - `NestForge: Open Extension Docs`
 
 ### NestForge DB

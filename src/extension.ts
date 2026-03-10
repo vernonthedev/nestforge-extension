@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { CliManager } from './cli-manager';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from './connection-manager';
 import { createEnvDiagnosticCollection, EnvCodeActionProvider, provideEnvHover, updateEnvDiagnostics } from './env-support';
+import { getModuleGraphWebviewHtml, scanWorkspaceModuleGraph } from './module-graph';
 import { classifyDbStatusOutput, fileExists, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from './nestforge-core';
 import { registerOnboarding } from './onboarding';
 import { setupMidnightNotify } from './scaffold-integrations';
@@ -84,6 +85,7 @@ class NestForgeExtension {
 	private readonly cliManager: CliManager;
 	private readonly envDiagnostics: vscode.DiagnosticCollection;
 	private readonly statusBar: vscode.StatusBarItem;
+	private moduleGraphPanel: vscode.WebviewPanel | undefined;
 	private dbStatusTimer: NodeJS.Timeout | undefined;
 	private dbStatusRunning = false;
 	private dbStatusInitialized = false;
@@ -117,6 +119,7 @@ class NestForgeExtension {
 			vscode.commands.registerCommand('nestforge.docs', () => this.openDocs()),
 			vscode.commands.registerCommand('nestforge.formatRust', () => this.formatRust()),
 			vscode.commands.registerCommand('nestforge.openLogs', () => this.cliManager.output.show(true)),
+			vscode.commands.registerCommand('nestforge.showModuleGraph', () => this.showModuleGraph()),
 			vscode.languages.registerCodeActionsProvider(
 				{ pattern: '**/.env*' },
 				new EnvCodeActionProvider(),
@@ -438,6 +441,39 @@ class NestForgeExtension {
 		await vscode.commands.executeCommand('workbench.files.action.refreshFilesExplorer');
 	}
 
+	private async showModuleGraph(): Promise<void> {
+		const workspacePath = this.getWorkspacePath();
+		if (!workspacePath) {
+			return;
+		}
+
+		if (!this.moduleGraphPanel) {
+			this.moduleGraphPanel = vscode.window.createWebviewPanel(
+				'nestforge.moduleGraph',
+				'NestForge Module Graph',
+				vscode.ViewColumn.Beside,
+				{ enableScripts: true, retainContextWhenHidden: true },
+			);
+			this.moduleGraphPanel.onDidDispose(() => {
+				this.moduleGraphPanel = undefined;
+			}, null, this.context.subscriptions);
+			this.moduleGraphPanel.webview.onDidReceiveMessage(async (message) => {
+				if (message.type === 'refresh') {
+					await this.renderModuleGraph(workspacePath);
+					return;
+				}
+
+				if (message.type === 'openFile' && typeof message.filePath === 'string') {
+					const targetUri = vscode.Uri.file(message.filePath);
+					await vscode.window.showTextDocument(targetUri, { preview: false });
+				}
+			}, null, this.context.subscriptions);
+		}
+
+		await this.renderModuleGraph(workspacePath);
+		this.moduleGraphPanel.reveal(vscode.ViewColumn.Beside);
+	}
+
 	private configureDbStatusPolling(): void {
 		if (this.dbStatusTimer) {
 			clearInterval(this.dbStatusTimer);
@@ -625,6 +661,15 @@ class NestForgeExtension {
 					: 'Midnight Notify setup completed partially.',
 			);
 		}
+	}
+
+	private async renderModuleGraph(workspacePath: string): Promise<void> {
+		if (!this.moduleGraphPanel) {
+			return;
+		}
+
+		const graph = await scanWorkspaceModuleGraph(workspacePath);
+		this.moduleGraphPanel.webview.html = getModuleGraphWebviewHtml(this.moduleGraphPanel.webview, graph);
 	}
 
 	private async refreshWorkspaceEnvDiagnostics(): Promise<void> {
