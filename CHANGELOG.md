@@ -2,6 +2,27 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.7.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.6.1...nestforge-v0.7.0) (2026-03-10)
+
+
+### Features
+
+* added a module graph autoview feature to the extension & new command for it, fixes [#5](https://github.com/vernonthedev/nestforge-extension/issues/5) ([69252bc](https://github.com/vernonthedev/nestforge-extension/commit/69252bcf403bfa7645ff5d1202bfc7ee8600be57))
+* added built-in rust Nestforge snippets, fixes [#7](https://github.com/vernonthedev/nestforge-extension/issues/7) ([94fbba0](https://github.com/vernonthedev/nestforge-extension/commit/94fbba0694b468ebfb6e4528e2262b006f844ee6))
+* added comprehensive matching Nestforge snippets autogenerations ([a463471](https://github.com/vernonthedev/nestforge-extension/commit/a463471e21a46b0cb13a5118262ab9618b5a62d3))
+* added comprehensive runner configuration, fixes [#3](https://github.com/vernonthedev/nestforge-extension/issues/3) ([0189131](https://github.com/vernonthedev/nestforge-extension/commit/0189131756fe4b6f3a1a6fe26815b70a29639e85))
+* added env `DATABASE_URL` detection & trigger, fixes [#6](https://github.com/vernonthedev/nestforge-extension/issues/6) ([cc0e5d3](https://github.com/vernonthedev/nestforge-extension/commit/cc0e5d37431416efb017caa42d7c501d2ab8f0cc))
+* added git initialization support, fixes [#4](https://github.com/vernonthedev/nestforge-extension/issues/4) ([de683bd](https://github.com/vernonthedev/nestforge-extension/commit/de683bd0b05b2a4b0754e7477f55eba43da43bbb))
+* added midnight notification service integrations, fixes [#8](https://github.com/vernonthedev/nestforge-extension/issues/8) ([20d5a88](https://github.com/vernonthedev/nestforge-extension/commit/20d5a88c2bfa1e288f150e2c95700e2425e0a38c))
+* cleaned & refactored the midnight notify module to a rust based module ([f8c96b0](https://github.com/vernonthedev/nestforge-extension/commit/f8c96b09e334ea3ba0ba358421acd152e6c12bb3))
+
+
+### Bug Fixes
+
+* added correct extension workthroughs, fixes [#15](https://github.com/vernonthedev/nestforge-extension/issues/15) ([fa5fd42](https://github.com/vernonthedev/nestforge-extension/commit/fa5fd420e61161e59767105f377bf49637c9bf92))
+* added issue templates, fixes [#17](https://github.com/vernonthedev/nestforge-extension/issues/17) ([1afb43d](https://github.com/vernonthedev/nestforge-extension/commit/1afb43dfc3bf874b1be7a1cdb41e7b9d0e656562))
+* added neutral initialization status to extension, fixes [#16](https://github.com/vernonthedev/nestforge-extension/issues/16) ([bd7d988](https://github.com/vernonthedev/nestforge-extension/commit/bd7d98800b66c1ae7f3d2924102ad658e14ef1ad))
+
 ## [0.6.1](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.6.0...nestforge-v0.6.1) (2026-03-09)
 
 
