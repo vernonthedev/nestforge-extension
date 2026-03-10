@@ -80,6 +80,12 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 `NestForge DB: Migrate` checks for a `.env` file in the workspace root before running.
 `NestForge DB: Generate` prompts for a migration name before running `nestforge db generate <name>`.
 
+### Environment Validation
+
+- NestForge validates `.env` files in Rust workspaces and highlights missing required variables such as `DATABASE_URL`.
+- Required transport variables are inferred from the workspace and currently include HTTP and gRPC boilerplate keys.
+- Quick Fix actions can add missing variables directly from diagnostics, and hover text explains what each supported variable is used for.
+
 ### Utilities
 
 - `NestForge: OpenAPI Docs` opens the configured docs URL.

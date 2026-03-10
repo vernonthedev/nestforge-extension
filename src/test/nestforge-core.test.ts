@@ -5,6 +5,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from '../connection-manager';
 import type { CliResult } from '../cli-manager';
+import { inferTransportKinds, parseEnvText, resolveEnvSchema } from '../env-schema';
 import { buildCliArgs, classifyDbStatusOutput, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from '../nestforge-core';
 import { injectCargoDependency, injectNotificationsModuleIntoRustEntrypoint, setupMidnightNotify } from '../scaffold-integrations';
 
@@ -113,6 +114,13 @@ test('runInitialConnectionSequence reports failure only after the final attempt'
 	assert.match(result.error.message, /attempt 3 failed/);
 });
 
+test('parseEnvText returns parsed key/value entries', () => {
+	const entries = parseEnvText('# comment\nDATABASE_URL=postgres://localhost:5432/app\nHTTP_PORT=3000\n');
+
+	assert.equal(entries.get('DATABASE_URL')?.value, 'postgres://localhost:5432/app');
+	assert.equal(entries.get('HTTP_PORT')?.line, 2);
+});
+
 test('injectCargoDependency adds Midnight Notify under an existing dependencies section', () => {
 	const source = '[package]\nname = "demo"\n\n[dependencies]\nserde = "1"\n';
 	const updated = injectCargoDependency(source);
@@ -159,6 +167,36 @@ test('setupMidnightNotify creates the Rust notifications module and registers it
 		assert.match(rustControllerFile, /pub struct NotificationController/);
 		assert.match(rustConfigFile, /MIDNIGHT_NOTIFY_API_KEY/);
 		assert.match(mainFile, /^pub mod notifications;/);
+	} finally {
+		await fs.rm(tempRoot, { recursive: true, force: true });
+	}
+});
+
+test('inferTransportKinds detects grpc and http from workspace files', async () => {
+	const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'nestforge-env-'));
+	await fs.mkdir(path.join(tempRoot, 'src'), { recursive: true });
+	await fs.writeFile(path.join(tempRoot, 'Cargo.toml'), '[dependencies]\ntonic = "0.12"\naxum = "0.7"\n');
+
+	try {
+		const transports = await inferTransportKinds(tempRoot);
+		assert.deepEqual(transports, ['http', 'grpc']);
+	} finally {
+		await fs.rm(tempRoot, { recursive: true, force: true });
+	}
+});
+
+test('resolveEnvSchema includes transport-specific variables', async () => {
+	const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'nestforge-schema-'));
+	await fs.mkdir(path.join(tempRoot, 'src'), { recursive: true });
+	await fs.writeFile(path.join(tempRoot, 'Cargo.toml'), '[dependencies]\ntonic = "0.12"\n');
+
+	try {
+		const schema = await resolveEnvSchema(tempRoot);
+		assert.deepEqual(schema.transports, ['grpc']);
+		assert.deepEqual(
+			schema.requiredVariables.map((variable) => variable.name),
+			['DATABASE_URL', 'GRPC_HOST', 'GRPC_PORT'],
+		);
 	} finally {
 		await fs.rm(tempRoot, { recursive: true, force: true });
 	}

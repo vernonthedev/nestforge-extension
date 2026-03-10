@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { CliManager } from './cli-manager';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from './connection-manager';
+import { createEnvDiagnosticCollection, EnvCodeActionProvider, provideEnvHover, updateEnvDiagnostics } from './env-support';
 import { classifyDbStatusOutput, fileExists, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from './nestforge-core';
 import { registerOnboarding } from './onboarding';
 import { setupMidnightNotify } from './scaffold-integrations';
@@ -81,6 +82,7 @@ const GENERATOR_CATEGORY_OPTIONS: GeneratorCategoryOption[] = [
 
 class NestForgeExtension {
 	private readonly cliManager: CliManager;
+	private readonly envDiagnostics: vscode.DiagnosticCollection;
 	private readonly statusBar: vscode.StatusBarItem;
 	private dbStatusTimer: NodeJS.Timeout | undefined;
 	private dbStatusRunning = false;
@@ -89,6 +91,7 @@ class NestForgeExtension {
 
 	public constructor(private readonly context: vscode.ExtensionContext) {
 		this.cliManager = new CliManager(vscode.workspace.getConfiguration('nestforge'));
+		this.envDiagnostics = createEnvDiagnosticCollection();
 		this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
 		this.statusBar.command = 'nestforge.dbStatus';
 		this.statusBar.name = 'NestForge DB Status';
@@ -102,6 +105,7 @@ class NestForgeExtension {
 	public register(): void {
 		this.context.subscriptions.push(
 			this.cliManager,
+			this.envDiagnostics,
 			this.statusBar,
 			...registerOnboarding(this.context),
 			vscode.commands.registerCommand('nestforge.new', () => this.runNewApplicationWizard()),
@@ -113,8 +117,31 @@ class NestForgeExtension {
 			vscode.commands.registerCommand('nestforge.docs', () => this.openDocs()),
 			vscode.commands.registerCommand('nestforge.formatRust', () => this.formatRust()),
 			vscode.commands.registerCommand('nestforge.openLogs', () => this.cliManager.output.show(true)),
-			vscode.workspace.onDidSaveTextDocument(() => {
+			vscode.languages.registerCodeActionsProvider(
+				{ pattern: '**/.env*' },
+				new EnvCodeActionProvider(),
+				{ providedCodeActionKinds: EnvCodeActionProvider.providedCodeActionKinds },
+			),
+			vscode.languages.registerHoverProvider({ pattern: '**/.env*' }, {
+				provideHover: (document, position) => provideEnvHover(document, position),
+			}),
+			vscode.workspace.onDidOpenTextDocument((document) => {
+				void this.refreshEnvDiagnostics(document);
+			}),
+			vscode.workspace.onDidChangeTextDocument((event) => {
+				void this.refreshEnvDiagnostics(event.document);
+			}),
+			vscode.workspace.onDidSaveTextDocument((document) => {
+				void this.refreshEnvDiagnostics(document);
 				void this.updateDbStatus(false);
+			}),
+			vscode.workspace.onDidCloseTextDocument((document) => {
+				if (path.basename(document.uri.fsPath).startsWith('.env')) {
+					this.envDiagnostics.delete(document.uri);
+				}
+			}),
+			vscode.workspace.onDidChangeWorkspaceFolders(() => {
+				void this.refreshWorkspaceEnvDiagnostics();
 			}),
 			vscode.workspace.onDidChangeConfiguration((event) => {
 				if (event.affectsConfiguration('nestforge.dbStatus') || event.affectsConfiguration('nestforge.cliPath')) {
@@ -125,6 +152,7 @@ class NestForgeExtension {
 
 		this.statusBar.show();
 		this.configureDbStatusPolling();
+		void this.refreshWorkspaceEnvDiagnostics();
 	}
 
 	private async runNewApplicationWizard(): Promise<void> {
@@ -597,6 +625,31 @@ class NestForgeExtension {
 					: 'Midnight Notify setup completed partially.',
 			);
 		}
+	}
+
+	private async refreshWorkspaceEnvDiagnostics(): Promise<void> {
+		for (const document of vscode.workspace.textDocuments) {
+			await this.refreshEnvDiagnostics(document);
+		}
+
+		const envFiles = await vscode.workspace.findFiles('**/.env*', '**/node_modules/**');
+		for (const uri of envFiles) {
+			const isOpen = vscode.workspace.textDocuments.some((document) => document.uri.toString() === uri.toString());
+			if (isOpen) {
+				continue;
+			}
+
+			try {
+				const document = await vscode.workspace.openTextDocument(uri);
+				await this.refreshEnvDiagnostics(document);
+			} catch {
+				continue;
+			}
+		}
+	}
+
+	private async refreshEnvDiagnostics(document: vscode.TextDocument): Promise<void> {
+		await updateEnvDiagnostics(this.envDiagnostics, document);
 	}
 
 	private async pickTargetModule(workspacePath: string): Promise<string | undefined> {
