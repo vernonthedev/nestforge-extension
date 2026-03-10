@@ -133,6 +133,16 @@ This extension contributes the following settings:
 - `nestforge.docsUrl`: URL opened by `NestForge: OpenAPI Docs`. Default: `http://localhost:3000/api/docs`
 - `nestforge.dbStatus.enabled`: enable or disable DB status polling and the status bar item. Default: `true`
 - `nestforge.dbStatus.intervalMs`: polling interval for `nestforge db status`. Default: `300000`
+- `nestforge.status.connectionTimeout`: timeout for each initial DB connection check. Default: `5000`
+
+## Contributing Issues
+
+Use GitHub's issue chooser when opening a new report:
+
+- `Bug Report` is for broken behavior, regressions, status bar issues, command failures, and incorrect output.
+- `Feature Request` is for new capabilities, UX changes, workflow improvements, and settings proposals.
+
+Both templates add the core headings used in this project and apply the `triage` label automatically so new reports start in a consistent state. For general questions or open-ended discussion, use GitHub Discussions instead of opening a blank issue.
 
 ## Usage Notes
 
