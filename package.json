@@ -89,6 +89,12 @@
         }
       ]
     },
+    "snippets": [
+      {
+        "language": "rust",
+        "path": "./snippets/rust.json"
+      }
+    ],
     "configuration": {
       "title": "NestForge",
       "properties": {

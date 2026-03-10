@@ -86,6 +86,11 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 - `NestForge: Format Rust` runs `cargo fmt`.
 - `NestForge: Open Logs` reveals the `NestForge Logs` output channel.
 
+### Rust Snippets
+
+- The extension contributes Rust snippets for common NestForge patterns.
+- Use prefixes such as `nf-controller`, `nf-service`, `nf-guard`, `nf-interceptor`, `nf-middleware`, and `nf-response` to expand documented stubs with tab-stop placeholders.
+
 ### Ecosystem Integrations
 
 - `Midnight Notify` can be enabled during new-project scaffolding.

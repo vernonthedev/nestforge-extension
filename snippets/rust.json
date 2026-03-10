@@ -1,0 +1,138 @@
+{
+  "NestForge Controller": {
+    "prefix": "nf-controller",
+    "description": "Create a documented NestForge controller struct and handler methods.",
+    "body": [
+      "/// ${1:Handles notification delivery endpoints for the workspace feature.}",
+      "#[controller(\"${2:notifications}\")]",
+      "pub struct ${3:NotificationsController} {",
+      "    service: ${4:NotificationService},",
+      "}",
+      "",
+      "impl ${3:NotificationsController} {",
+      "    /// ${5:Construct a controller with the injected service dependency.}",
+      "    pub fn new(service: ${4:NotificationService}) -> Self {",
+      "        Self { service }",
+      "    }",
+      "",
+      "    /// ${6:Return a health summary for the controller and its backing service.}",
+      "    pub async fn health(&self) -> Result<${7:HealthResponse}, ${8:AppError}> {",
+      "        ${9:todo!()}",
+      "    }",
+      "",
+      "    /// ${10:Process a feature-specific request and delegate the work to the service layer.}",
+      "    pub async fn ${11:handle_request}(",
+      "        &self,",
+      "        payload: ${12:${3/(.*)Controller/$1Request/}},",
+      "    ) -> Result<${13:${3/(.*)Controller/$1Response/}}, ${8:AppError}> {",
+      "        ${9:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Service": {
+    "prefix": "nf-service",
+    "description": "Create a thread-safe NestForge service stub backed by Arc.",
+    "body": [
+      "use std::sync::Arc;",
+      "",
+      "/// ${1:Coordinates feature-specific business logic behind a thread-safe service boundary.}",
+      "#[derive(Clone)]",
+      "pub struct ${2:NotificationService} {",
+      "    state: Arc<${3:AppState}>,",
+      "}",
+      "",
+      "impl ${2:NotificationService} {",
+      "    /// ${4:Build the service from shared application state.}",
+      "    pub fn new(state: Arc<${3:AppState}>) -> Self {",
+      "        Self { state }",
+      "    }",
+      "",
+      "    /// ${5:Execute the main feature workflow with the shared state dependency.}",
+      "    pub async fn ${6:execute}(",
+      "        &self,",
+      "        input: ${7:${2/(.*)Service/$1Input/}},",
+      "    ) -> Result<${8:${2/(.*)Service/$1Output/}}, ${9:AppError}> {",
+      "        let _ = &self.state;",
+      "        ${10:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Guard": {
+    "prefix": "nf-guard",
+    "description": "Create a documented guard stub for access control decisions.",
+    "body": [
+      "/// ${1:Enforces access rules before the request reaches the controller.}",
+      "pub struct ${2:AuthGuard};",
+      "",
+      "impl ${2:AuthGuard} {",
+      "    /// ${3:Validate the caller and reject requests that do not satisfy the policy.}",
+      "    pub async fn check(&self, context: &${4:RequestContext}) -> Result<(), ${5:AppError}> {",
+      "        let _ = context;",
+      "        ${6:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Interceptor": {
+    "prefix": "nf-interceptor",
+    "description": "Create a documented interceptor stub for request and response shaping.",
+    "body": [
+      "/// ${1:Applies cross-cutting behavior around a request lifecycle.}",
+      "pub struct ${2:TracingInterceptor};",
+      "",
+      "impl ${2:TracingInterceptor} {",
+      "    /// ${3:Wrap the next handler to add tracing, metrics, or response shaping.}",
+      "    pub async fn intercept<T>(",
+      "        &self,",
+      "        context: &${4:RequestContext},",
+      "        next: impl std::future::Future<Output = Result<T, ${5:AppError}>>,",
+      "    ) -> Result<T, ${5:AppError}> {",
+      "        let _ = context;",
+      "        next.await",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Middleware": {
+    "prefix": "nf-middleware",
+    "description": "Create a documented middleware stub for request preprocessing.",
+    "body": [
+      "/// ${1:Transforms or annotates the request before it reaches the application handler.}",
+      "pub struct ${2:RequestMiddleware};",
+      "",
+      "impl ${2:RequestMiddleware} {",
+      "    /// ${3:Apply middleware-specific preprocessing to the incoming request context.}",
+      "    pub async fn handle(&self, context: &mut ${4:RequestContext}) -> Result<(), ${5:AppError}> {",
+      "        let _ = context;",
+      "        ${6:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Type-safe Response": {
+    "prefix": "nf-response",
+    "description": "Create a type-safe response envelope for Rust handlers.",
+    "body": [
+      "/// ${1:Represents a typed API response returned by a NestForge handler.}",
+      "#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]",
+      "pub struct ${2:ApiResponse}<T> {",
+      "    pub success: bool,",
+      "    pub message: String,",
+      "    pub data: T,",
+      "}",
+      "",
+      "impl<T> ${2:ApiResponse}<T> {",
+      "    /// ${3:Build a success response with a caller-provided payload.}",
+      "    pub fn ok(message: impl Into<String>, data: T) -> Self {",
+      "        Self {",
+      "            success: true,",
+      "            message: message.into(),",
+      "            data,",
+      "        }",
+      "    }",
+      "}"
+    ]
+  }
+}
