@@ -89,7 +89,8 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 ### Rust Snippets
 
 - The extension contributes Rust snippets for common NestForge patterns.
-- Use prefixes such as `nf-controller`, `nf-service`, `nf-guard`, `nf-interceptor`, `nf-middleware`, and `nf-response` to expand documented stubs with tab-stop placeholders.
+- Use prefixes such as `nf-controller`, `nf-service`, `nf-guard`, `nf-interceptor`, `nf-middleware`, and `nf-response` to expand generic documented stubs with tab-stop placeholders.
+- The snippets do not force a `notifications` naming scheme. The `notifications` module name is only used by the dedicated Midnight Notify integration scaffold.
 
 ### Ecosystem Integrations
 
