@@ -35,7 +35,8 @@ Run `NestForge: New Application` from the Command Palette to scaffold a new app 
 
 1. Enter the application name.
 2. Pick one or more transports.
-3. The extension runs `nestforge new <app-name>` with repeated `--transport <value>` options.
+3. Optionally enable `Midnight Notify` to add the client crate and starter notification service files after scaffolding.
+4. The extension runs `nestforge new <app-name>` with repeated `--transport <value>` options.
 
 Available transport values:
 
@@ -84,6 +85,11 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 - `NestForge: OpenAPI Docs` opens the configured docs URL.
 - `NestForge: Format Rust` runs `cargo fmt`.
 - `NestForge: Open Logs` reveals the `NestForge Logs` output channel.
+
+### Ecosystem Integrations
+
+- `Midnight Notify` can be enabled during new-project scaffolding.
+- When enabled, the extension patches `Cargo.toml` with `midnight-notify-client` and writes a starter notification service file that reads its API settings from environment variables.
 
 ### Logging and Progress
 

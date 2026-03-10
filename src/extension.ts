@@ -6,6 +6,7 @@ import { CliManager } from './cli-manager';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from './connection-manager';
 import { classifyDbStatusOutput, fileExists, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from './nestforge-core';
 import { registerOnboarding } from './onboarding';
+import { setupMidnightNotify } from './scaffold-integrations';
 
 type GeneratorCategory = 'Core' | 'Cross-Cutting' | 'Transport';
 
@@ -50,6 +51,14 @@ const TRANSPORT_OPTIONS = [
 	{ label: 'gRPC', value: 'grpc' },
 	{ label: 'Microservices', value: 'microservices' },
 	{ label: 'WebSockets', value: 'websockets' },
+];
+
+const NEW_APPLICATION_INTEGRATIONS = [
+	{
+		label: 'Enable Midnight Notify',
+		value: 'midnight-notify',
+		description: 'Add the Midnight Notify client dependency and a starter notification service.',
+	},
 ];
 
 const GENERATOR_CATEGORY_OPTIONS: GeneratorCategoryOption[] = [
@@ -151,6 +160,23 @@ class NestForgeExtension {
 			return;
 		}
 
+		const integrations = await vscode.window.showQuickPick(
+			NEW_APPLICATION_INTEGRATIONS.map((integration) => ({
+				label: integration.label,
+				value: integration.value,
+				description: integration.description,
+			})),
+			{
+				canPickMany: true,
+				ignoreFocusOut: true,
+				placeHolder: 'Select optional integrations for the new project',
+			},
+		);
+
+		if (!integrations) {
+			return;
+		}
+
 		await this.executeNestForge(
 			{
 				args: ['new', appName.trim()],
@@ -164,6 +190,10 @@ class NestForgeExtension {
 		);
 
 		const createdAppPath = path.join(destinationRoot, appName.trim());
+		if (integrations.some((integration) => integration.value === 'midnight-notify')) {
+			await this.configureOptionalScaffoldIntegrations(createdAppPath);
+		}
+
 		await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(createdAppPath), {
 			forceNewWindow: false,
 		});
@@ -544,6 +574,28 @@ class NestForgeExtension {
 			}
 		} catch (error) {
 			vscode.window.showErrorMessage(error instanceof Error ? error.message : 'NestForge command failed.');
+		}
+	}
+
+	private async configureOptionalScaffoldIntegrations(projectRoot: string): Promise<void> {
+		try {
+			const result = await setupMidnightNotify(projectRoot);
+			for (const warning of result.warnings) {
+				void vscode.window.showWarningMessage(warning);
+			}
+
+			if (result.cargoTomlUpdated || result.serviceFilePath) {
+				const createdFileLabel = result.serviceFilePath ? path.basename(result.serviceFilePath) : 'integration files';
+				void vscode.window.showInformationMessage(
+					`Midnight Notify integration added to the new project${createdFileLabel ? `, including ${createdFileLabel}` : ''}.`,
+				);
+			}
+		} catch (error) {
+			void vscode.window.showWarningMessage(
+				error instanceof Error
+					? `Midnight Notify setup completed partially: ${error.message}`
+					: 'Midnight Notify setup completed partially.',
+			);
 		}
 	}
 

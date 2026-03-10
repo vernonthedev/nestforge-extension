@@ -6,6 +6,7 @@ import * as path from 'node:path';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from '../connection-manager';
 import type { CliResult } from '../cli-manager';
 import { buildCliArgs, classifyDbStatusOutput, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from '../nestforge-core';
+import { buildMidnightNotifyServiceTemplate, injectCargoDependency, setupMidnightNotify } from '../scaffold-integrations';
 
 test('buildCliArgs expands booleans, scalars, arrays, and skips falsy flags', () => {
 	const args = buildCliArgs(['g', 'resource', 'users'], {
@@ -110,6 +111,47 @@ test('runInitialConnectionSequence reports failure only after the final attempt'
 	assert.equal(result.state, 'failed');
 	assert.equal(result.attempts, 3);
 	assert.match(result.error.message, /attempt 3 failed/);
+});
+
+test('injectCargoDependency adds Midnight Notify under an existing dependencies section', () => {
+	const source = '[package]\nname = "demo"\n\n[dependencies]\nserde = "1"\n';
+	const updated = injectCargoDependency(source);
+
+	assert.match(updated, /\[dependencies\]\nmidnight-notify-client = "\*"\nserde = "1"/);
+});
+
+test('injectCargoDependency creates a dependencies section when missing', () => {
+	const source = '[package]\nname = "demo"\n';
+	const updated = injectCargoDependency(source);
+
+	assert.match(updated, /\[dependencies\]\nmidnight-notify-client = "\*"/);
+});
+
+test('buildMidnightNotifyServiceTemplate creates a Rust service that uses env-based configuration', () => {
+	const template = buildMidnightNotifyServiceTemplate('.rs');
+
+	assert.match(template, /MIDNIGHT_NOTIFY_API_KEY/);
+	assert.match(template, /midnight_notify_client::Client::builder/);
+});
+
+test('setupMidnightNotify updates Cargo.toml and writes a starter service file', async () => {
+	const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'nestforge-midnight-'));
+	await fs.mkdir(path.join(tempRoot, 'src'), { recursive: true });
+	await fs.writeFile(path.join(tempRoot, 'Cargo.toml'), '[package]\nname = "demo"\n\n[dependencies]\nserde = "1"\n');
+
+	try {
+		const result = await setupMidnightNotify(tempRoot);
+		const cargoToml = await fs.readFile(path.join(tempRoot, 'Cargo.toml'), 'utf8');
+		const serviceFile = await fs.readFile(path.join(tempRoot, 'src', 'notification.service.rs'), 'utf8');
+
+		assert.equal(result.cargoTomlUpdated, true);
+		assert.equal(result.serviceFilePath, path.join(tempRoot, 'src', 'notification.service.rs'));
+		assert.deepEqual(result.warnings, []);
+		assert.match(cargoToml, /midnight-notify-client = "\*"/);
+		assert.match(serviceFile, /MIDNIGHT_NOTIFY_TENANT_ID/);
+	} finally {
+		await fs.rm(tempRoot, { recursive: true, force: true });
+	}
 });
 
 test('findModuleCandidatesInWorkspace prefers src and returns sorted unique candidates', async () => {
