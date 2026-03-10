@@ -90,6 +90,7 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 
 - `NestForge: OpenAPI Docs` opens the configured docs URL.
 - `NestForge: Format Rust` runs `cargo fmt`.
+- `NestForge: Generate Run Config` creates `.vscode/launch.json` and a matching `cargo build` task for the current Rust project.
 - `NestForge: Initialize Git Repository` bootstraps Git, ensures `/target` is ignored, and attempts the initial scaffold commit.
 - `NestForge: Open Logs` reveals the `NestForge Logs` output channel.
 - `NestForge: Show Module Graph` opens a visual dependency map for Rust modules under `src/`.
@@ -124,6 +125,8 @@ The extension includes a getting-started walkthrough that links directly to:
 
 - project scaffolding
 - generator workflows
+- runner setup
+- Git initialization
 - database status checks
 - extension docs
 
@@ -141,6 +144,8 @@ The extension includes a getting-started walkthrough that links directly to:
 - `NestForge: Generate`
 - `NestForge: OpenAPI Docs`
 - `NestForge: Format Rust`
+- `NestForge: Generate Run Config`
+- `NestForge: Initialize Git Repository`
 - `NestForge: Open Logs`
 - `NestForge: Show Module Graph`
 - `NestForge: Open Extension Docs`

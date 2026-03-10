@@ -7,6 +7,13 @@ import { classifyHeartbeatResult, runInitialConnectionSequence } from '../connec
 import type { CliResult } from '../cli-manager';
 import { inferTransportKinds, parseEnvText, resolveEnvSchema } from '../env-schema';
 import { ensureRustGitignore } from '../git-support';
+import {
+	buildNestForgeBuildTask,
+	buildNestForgeLaunchConfiguration,
+	parseCargoPackageName,
+	upsertBuildTask,
+	upsertLaunchConfiguration,
+} from '../launch-support';
 import { scanWorkspaceModuleGraph } from '../module-graph';
 import { buildCliArgs, classifyDbStatusOutput, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from '../nestforge-core';
 import { injectCargoDependency, injectNotificationsModuleIntoRustEntrypoint, setupMidnightNotify } from '../scaffold-integrations';
@@ -135,6 +142,32 @@ test('ensureRustGitignore appends the target ignore rule once', async () => {
 	} finally {
 		await fs.rm(tempRoot, { recursive: true, force: true });
 	}
+});
+
+test('parseCargoPackageName extracts the binary name from Cargo.toml', () => {
+	const cargoToml = '[package]\nname = "enzi-connect"\nversion = "0.1.0"\n';
+	assert.equal(parseCargoPackageName(cargoToml), 'enzi-connect');
+});
+
+test('upsertLaunchConfiguration inserts and replaces the NestForge debug profile', () => {
+	const launch = upsertLaunchConfiguration(
+		{ version: '0.2.0', configurations: [{ name: 'Other Debug', type: 'lldb' }] },
+		buildNestForgeLaunchConfiguration('enzi-connect', 'lldb'),
+	);
+
+	assert.equal(launch.configurations.length, 2);
+	assert.deepEqual(
+		launch.configurations.find((entry) => entry.name === 'Run NestForge Project'),
+		buildNestForgeLaunchConfiguration('enzi-connect', 'lldb'),
+	);
+});
+
+test('upsertBuildTask inserts the cargo build task once', () => {
+	const task = buildNestForgeBuildTask();
+	const tasks = upsertBuildTask({ version: '2.0.0', tasks: [task] }, task);
+
+	assert.equal(tasks.tasks.length, 1);
+	assert.deepEqual(tasks.tasks[0], task);
 });
 
 test('injectCargoDependency adds Midnight Notify under an existing dependencies section', () => {
@@ -291,6 +324,7 @@ test('declared command definitions cover the expected command ids', () => {
 			'nestforge.dbStatus',
 			'nestforge.docs',
 			'nestforge.formatRust',
+			'nestforge.generateLaunchConfig',
 			'nestforge.initGit',
 			'nestforge.openLogs',
 			'nestforge.showModuleGraph',

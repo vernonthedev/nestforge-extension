@@ -3,7 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { CliManager } from './cli-manager';
-import { initializeGitRepository } from './commands';
+import { generateLaunchConfiguration, initializeGitRepository } from './commands';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from './connection-manager';
 import { createEnvDiagnosticCollection, EnvCodeActionProvider, provideEnvHover, updateEnvDiagnostics } from './env-support';
 import { getModuleGraphWebviewHtml, scanWorkspaceModuleGraph } from './module-graph';
@@ -119,6 +119,7 @@ class NestForgeExtension {
 			vscode.commands.registerCommand('nestforge.dbStatus', () => this.updateDbStatus(true)),
 			vscode.commands.registerCommand('nestforge.docs', () => this.openDocs()),
 			vscode.commands.registerCommand('nestforge.formatRust', () => this.formatRust()),
+			vscode.commands.registerCommand('nestforge.generateLaunchConfig', () => this.generateRunnerConfig()),
 			vscode.commands.registerCommand('nestforge.initGit', () => this.initGitRepository()),
 			vscode.commands.registerCommand('nestforge.openLogs', () => this.cliManager.output.show(true)),
 			vscode.commands.registerCommand('nestforge.showModuleGraph', () => this.showModuleGraph()),
@@ -226,6 +227,7 @@ class NestForgeExtension {
 		if (integrations.some((integration) => integration.value === 'midnight-notify')) {
 			await this.configureOptionalScaffoldIntegrations(createdAppPath);
 		}
+		await this.generateRunnerConfigurationForPath(createdAppPath);
 
 		await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(createdAppPath), {
 			forceNewWindow: false,
@@ -459,6 +461,15 @@ class NestForgeExtension {
 		}
 	}
 
+	private async generateRunnerConfig(): Promise<void> {
+		const workspacePath = this.getWorkspacePath();
+		if (!workspacePath) {
+			return;
+		}
+
+		await this.generateRunnerConfigurationForPath(workspacePath);
+	}
+
 	private async showModuleGraph(): Promise<void> {
 		const workspacePath = this.getWorkspacePath();
 		if (!workspacePath) {
@@ -688,6 +699,17 @@ class NestForgeExtension {
 
 		const graph = await scanWorkspaceModuleGraph(workspacePath);
 		this.moduleGraphPanel.webview.html = getModuleGraphWebviewHtml(this.moduleGraphPanel.webview, graph);
+	}
+
+	private async generateRunnerConfigurationForPath(workspacePath: string): Promise<void> {
+		const result = await generateLaunchConfiguration(workspacePath);
+		if (!result.generated) {
+			return;
+		}
+
+		void vscode.window.showInformationMessage(
+			`NestForge generated a ${result.debuggerType} runner configuration for ${result.binaryName}.`,
+		);
 	}
 
 	private async refreshWorkspaceEnvDiagnostics(): Promise<void> {

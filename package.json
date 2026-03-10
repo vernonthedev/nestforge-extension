@@ -70,6 +70,11 @@
         "category": "NestForge"
       },
       {
+        "command": "nestforge.generateLaunchConfig",
+        "title": "Generate Run Config",
+        "category": "NestForge"
+      },
+      {
         "command": "nestforge.initGit",
         "title": "Initialize Git Repository",
         "category": "NestForge"
@@ -173,6 +178,17 @@
             ],
             "media": {
               "markdown": "docs/walkthroughs/init-git.md"
+            }
+          },
+          {
+            "id": "nestforge.gettingStarted.runner",
+            "title": "Setup runner",
+            "description": "Generate VS Code run settings so F5 builds and runs the NestForge Rust binary.",
+            "completionEvents": [
+              "onContext:nestforge.runnerConfigured"
+            ],
+            "media": {
+              "markdown": "docs/walkthroughs/setup-debugger.md"
             }
           },
           {

@@ -130,6 +130,7 @@ export const NESTFORGE_COMMANDS: NestForgeCommandContribution[] = [
 	{ command: 'nestforge.dbStatus', title: 'Status', category: 'NestForge DB' },
 	{ command: 'nestforge.docs', title: 'OpenAPI Docs', category: 'NestForge' },
 	{ command: 'nestforge.formatRust', title: 'Format Rust', category: 'NestForge' },
+	{ command: 'nestforge.generateLaunchConfig', title: 'Generate Run Config', category: 'NestForge' },
 	{ command: 'nestforge.initGit', title: 'Initialize Git Repository', category: 'NestForge' },
 	{ command: 'nestforge.openLogs', title: 'Open Logs', category: 'NestForge' },
 	{ command: 'nestforge.showModuleGraph', title: 'Show Module Graph', category: 'NestForge' },
