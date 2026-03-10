@@ -4,7 +4,7 @@ What this step does:
 
 - Prompts for an application name.
 - Lets you choose one or more transports such as `http`, `graphql`, or `grpc`.
-- Lets you opt into integrations such as `Midnight Notify` during setup.
+- Lets you opt into integrations such as `Midnight Notify`, which scaffolds a dedicated Rust notifications feature into the generated app.
 - Runs the underlying `nestforge new <app-name>` command with the selected transport flags.
 - Opens the generated project folder in VS Code when scaffolding completes.
 

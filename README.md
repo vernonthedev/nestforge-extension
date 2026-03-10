@@ -35,7 +35,7 @@ Run `NestForge: New Application` from the Command Palette to scaffold a new app 
 
 1. Enter the application name.
 2. Pick one or more transports.
-3. Optionally enable `Midnight Notify` to add the client crate and starter notification service files after scaffolding.
+3. Optionally enable `Midnight Notify` to scaffold a full Rust `notifications` feature after project creation.
 4. The extension runs `nestforge new <app-name>` with repeated `--transport <value>` options.
 
 Available transport values:
@@ -89,7 +89,7 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 ### Ecosystem Integrations
 
 - `Midnight Notify` can be enabled during new-project scaffolding.
-- When enabled, the extension patches `Cargo.toml` with `midnight-notify-client` and writes a starter notification service file that reads its API settings from environment variables.
+- When enabled, the extension treats the generated app as Rust-native, patches `Cargo.toml` with `midnight-notify-client`, creates `src/notifications/{config,controllers,services}`, writes Rust module files, and registers `pub mod notifications;` in `src/main.rs` or `src/lib.rs`.
 
 ### Logging and Progress
 

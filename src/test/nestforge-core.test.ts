@@ -6,7 +6,7 @@ import * as path from 'node:path';
 import { classifyHeartbeatResult, runInitialConnectionSequence } from '../connection-manager';
 import type { CliResult } from '../cli-manager';
 import { buildCliArgs, classifyDbStatusOutput, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from '../nestforge-core';
-import { buildMidnightNotifyServiceTemplate, injectCargoDependency, setupMidnightNotify } from '../scaffold-integrations';
+import { injectCargoDependency, injectNotificationsModuleIntoRustEntrypoint, setupMidnightNotify } from '../scaffold-integrations';
 
 test('buildCliArgs expands booleans, scalars, arrays, and skips falsy flags', () => {
 	const args = buildCliArgs(['g', 'resource', 'users'], {
@@ -127,28 +127,38 @@ test('injectCargoDependency creates a dependencies section when missing', () => 
 	assert.match(updated, /\[dependencies\]\nmidnight-notify-client = "\*"/);
 });
 
-test('buildMidnightNotifyServiceTemplate creates a Rust service that uses env-based configuration', () => {
-	const template = buildMidnightNotifyServiceTemplate('.rs');
+test('injectNotificationsModuleIntoRustEntrypoint registers the notifications module', () => {
+	const source = 'fn main() {\n    println!("hello");\n}\n';
+	const updated = injectNotificationsModuleIntoRustEntrypoint(source);
 
-	assert.match(template, /MIDNIGHT_NOTIFY_API_KEY/);
-	assert.match(template, /midnight_notify_client::Client::builder/);
+	assert.match(updated, /^pub mod notifications;/);
+	assert.match(updated, /fn main\(\)/);
 });
 
-test('setupMidnightNotify updates Cargo.toml and writes a starter service file', async () => {
+test('setupMidnightNotify creates the Rust notifications module and registers it in main.rs', async () => {
 	const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'nestforge-midnight-'));
 	await fs.mkdir(path.join(tempRoot, 'src'), { recursive: true });
 	await fs.writeFile(path.join(tempRoot, 'Cargo.toml'), '[package]\nname = "demo"\n\n[dependencies]\nserde = "1"\n');
+	await fs.writeFile(path.join(tempRoot, 'src', 'main.rs'), 'fn main() {\n    println!("hello");\n}\n');
 
 	try {
 		const result = await setupMidnightNotify(tempRoot);
 		const cargoToml = await fs.readFile(path.join(tempRoot, 'Cargo.toml'), 'utf8');
-		const serviceFile = await fs.readFile(path.join(tempRoot, 'src', 'notification.service.rs'), 'utf8');
+		const rootModuleFile = await fs.readFile(path.join(tempRoot, 'src', 'notifications', 'mod.rs'), 'utf8');
+		const rustServiceFile = await fs.readFile(path.join(tempRoot, 'src', 'notifications', 'services', 'notification_service.rs'), 'utf8');
+		const rustControllerFile = await fs.readFile(path.join(tempRoot, 'src', 'notifications', 'controllers', 'notification_controller.rs'), 'utf8');
+		const rustConfigFile = await fs.readFile(path.join(tempRoot, 'src', 'notifications', 'config', 'notification_config.rs'), 'utf8');
+		const mainFile = await fs.readFile(path.join(tempRoot, 'src', 'main.rs'), 'utf8');
 
 		assert.equal(result.cargoTomlUpdated, true);
-		assert.equal(result.serviceFilePath, path.join(tempRoot, 'src', 'notification.service.rs'));
 		assert.deepEqual(result.warnings, []);
 		assert.match(cargoToml, /midnight-notify-client = "\*"/);
-		assert.match(serviceFile, /MIDNIGHT_NOTIFY_TENANT_ID/);
+		assert.ok(result.writtenFiles.includes(path.join(tempRoot, 'src', 'notifications', 'services', 'notification_service.rs')));
+		assert.match(rootModuleFile, /pub mod services;/);
+		assert.match(rustServiceFile, /pub struct NotificationService/);
+		assert.match(rustControllerFile, /pub struct NotificationController/);
+		assert.match(rustConfigFile, /MIDNIGHT_NOTIFY_API_KEY/);
+		assert.match(mainFile, /^pub mod notifications;/);
 	} finally {
 		await fs.rm(tempRoot, { recursive: true, force: true });
 	}

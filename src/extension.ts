@@ -584,10 +584,10 @@ class NestForgeExtension {
 				void vscode.window.showWarningMessage(warning);
 			}
 
-			if (result.cargoTomlUpdated || result.serviceFilePath) {
-				const createdFileLabel = result.serviceFilePath ? path.basename(result.serviceFilePath) : 'integration files';
+			if (result.writtenFiles.length > 0) {
+				const createdFileLabel = `${path.basename(path.dirname(result.writtenFiles[0]))} feature files`;
 				void vscode.window.showInformationMessage(
-					`Midnight Notify integration added to the new project${createdFileLabel ? `, including ${createdFileLabel}` : ''}.`,
+					`Midnight Notify integration added to the new project, including ${createdFileLabel}.`,
 				);
 			}
 		} catch (error) {

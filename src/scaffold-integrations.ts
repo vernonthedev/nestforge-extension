@@ -2,10 +2,11 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 const MIDNIGHT_NOTIFY_DEPENDENCY = 'midnight-notify-client = "*"';
+const NOTIFICATIONS_DIRECTORY = 'notifications';
 
 export interface MidnightNotifySetupResult {
 	cargoTomlUpdated: boolean;
-	serviceFilePath?: string;
+	writtenFiles: string[];
 	warnings: string[];
 }
 
@@ -23,45 +24,101 @@ export function injectCargoDependency(cargoToml: string, dependencyLine = MIDNIG
 	return `${trimmed}\n\n[dependencies]\n${dependencyLine}\n`;
 }
 
-export async function setupMidnightNotify(projectRoot: string): Promise<MidnightNotifySetupResult> {
-	const warnings: string[] = [];
-	const cargoTomlPath = path.join(projectRoot, 'Cargo.toml');
-	let cargoTomlUpdated = false;
-
-	try {
-		const cargoToml = await fs.readFile(cargoTomlPath, 'utf8');
-		const updatedCargoToml = injectCargoDependency(cargoToml);
-		if (updatedCargoToml !== cargoToml) {
-			await fs.writeFile(cargoTomlPath, updatedCargoToml, 'utf8');
-			cargoTomlUpdated = true;
-		}
-	} catch {
-		warnings.push('Midnight Notify setup skipped crate injection because Cargo.toml was not found in the generated project.');
+export function injectNotificationsModuleIntoRustEntrypoint(entrypointSource: string): string {
+	if (entrypointSource.includes('pub mod notifications;')) {
+		return entrypointSource;
 	}
 
-	const sourceRoot = path.join(projectRoot, 'src');
-	try {
-		await fs.mkdir(sourceRoot, { recursive: true });
-	} catch {
-		warnings.push('Midnight Notify setup could not create the src directory for the starter notification service.');
-		return { cargoTomlUpdated, warnings };
-	}
-
-	const rustServicePath = path.join(sourceRoot, 'notification.service.rs');
-	const tsServicePath = path.join(sourceRoot, 'notification.service.ts');
-
-	const serviceFilePath = cargoTomlUpdated || await fileExists(cargoTomlPath)
-		? rustServicePath
-		: tsServicePath;
-
-	await fs.writeFile(serviceFilePath, buildMidnightNotifyServiceTemplate(path.extname(serviceFilePath)), 'utf8');
-	return { cargoTomlUpdated, serviceFilePath, warnings };
+	return `pub mod notifications;\n${entrypointSource}`;
 }
 
-export function buildMidnightNotifyServiceTemplate(extension: '.rs' | '.ts' | string): string {
-	if (extension === '.rs') {
-		return `use std::env;
+export async function setupMidnightNotify(projectRoot: string): Promise<MidnightNotifySetupResult> {
+	const warnings: string[] = [];
+	const writtenFiles: string[] = [];
+	const cargoTomlPath = path.join(projectRoot, 'Cargo.toml');
+	const sourceRoot = path.join(projectRoot, 'src');
+	const notificationsRoot = path.join(sourceRoot, NOTIFICATIONS_DIRECTORY);
+	const controllersRoot = path.join(notificationsRoot, 'controllers');
+	const servicesRoot = path.join(notificationsRoot, 'services');
+	const configRoot = path.join(notificationsRoot, 'config');
+	const mainEntrypointPath = path.join(sourceRoot, 'main.rs');
+	const libEntrypointPath = path.join(sourceRoot, 'lib.rs');
+	let cargoTomlUpdated = false;
 
+	if (!await fileExists(cargoTomlPath)) {
+		warnings.push('Midnight Notify setup requires Cargo.toml. The generated project does not look like a Rust workspace.');
+		return { cargoTomlUpdated, writtenFiles, warnings };
+	}
+
+	const cargoToml = await fs.readFile(cargoTomlPath, 'utf8');
+	const updatedCargoToml = injectCargoDependency(cargoToml);
+	if (updatedCargoToml !== cargoToml) {
+		await fs.writeFile(cargoTomlPath, updatedCargoToml, 'utf8');
+		cargoTomlUpdated = true;
+		writtenFiles.push(cargoTomlPath);
+	}
+
+	await fs.mkdir(controllersRoot, { recursive: true });
+	await fs.mkdir(servicesRoot, { recursive: true });
+	await fs.mkdir(configRoot, { recursive: true });
+
+	const filesToWrite: Array<[string, string]> = [
+		[path.join(notificationsRoot, 'mod.rs'), buildNotificationsModuleTemplate()],
+		[path.join(controllersRoot, 'mod.rs'), buildControllersModuleTemplate()],
+		[path.join(controllersRoot, 'notification_controller.rs'), buildNotificationControllerTemplate()],
+		[path.join(servicesRoot, 'mod.rs'), buildServicesModuleTemplate()],
+		[path.join(servicesRoot, 'notification_service.rs'), buildNotificationServiceTemplate()],
+		[path.join(configRoot, 'mod.rs'), buildConfigModuleTemplate()],
+		[path.join(configRoot, 'notification_config.rs'), buildNotificationConfigTemplate()],
+	];
+
+	for (const [targetPath, contents] of filesToWrite) {
+		await fs.writeFile(targetPath, contents, 'utf8');
+		writtenFiles.push(targetPath);
+	}
+
+	const entrypointPath = await resolveRustEntrypoint(mainEntrypointPath, libEntrypointPath);
+	if (!entrypointPath) {
+		warnings.push('Midnight Notify setup created the notifications module, but no src/main.rs or src/lib.rs was found for automatic module registration.');
+		return { cargoTomlUpdated, writtenFiles, warnings };
+	}
+
+	const entrypointSource = await fs.readFile(entrypointPath, 'utf8');
+	const updatedEntrypoint = injectNotificationsModuleIntoRustEntrypoint(entrypointSource);
+	if (updatedEntrypoint !== entrypointSource) {
+		await fs.writeFile(entrypointPath, updatedEntrypoint, 'utf8');
+		writtenFiles.push(entrypointPath);
+	}
+
+	return { cargoTomlUpdated, writtenFiles, warnings };
+}
+
+function buildNotificationsModuleTemplate(): string {
+	return `pub mod config;
+pub mod controllers;
+pub mod services;
+`;
+}
+
+function buildControllersModuleTemplate(): string {
+	return `pub mod notification_controller;
+`;
+}
+
+function buildServicesModuleTemplate(): string {
+	return `pub mod notification_service;
+`;
+}
+
+function buildConfigModuleTemplate(): string {
+	return `pub mod notification_config;
+`;
+}
+
+function buildNotificationConfigTemplate(): string {
+	return `use std::env;
+
+#[derive(Debug, Clone)]
 pub struct MidnightNotifyConfig {
     pub api_key: String,
     pub tenant_id: String,
@@ -80,38 +137,86 @@ impl MidnightNotifyConfig {
         }
     }
 }
+`;
+}
 
-pub fn build_notification_client() -> midnight_notify_client::Client {
-    let config = MidnightNotifyConfig::from_env();
+function buildNotificationServiceTemplate(): string {
+	return `use midnight_notify_client::Client;
 
-    midnight_notify_client::Client::builder()
-        .api_key(config.api_key)
-        .tenant_id(config.tenant_id)
-        .base_url(config.base_url)
-        .build()
+use crate::notifications::config::notification_config::MidnightNotifyConfig;
+
+pub struct NotificationService {
+    client: Client,
+}
+
+impl NotificationService {
+    pub fn new() -> Self {
+        let config = MidnightNotifyConfig::from_env();
+        let client = Client::builder()
+            .api_key(config.api_key)
+            .tenant_id(config.tenant_id)
+            .base_url(config.base_url)
+            .build();
+
+        Self { client }
+    }
+
+    pub async fn send(
+        &self,
+        user_id: &str,
+        template: &str,
+        channel: &str,
+    ) -> Result<(), midnight_notify_client::Error> {
+        self.client
+            .send()
+            .user_id(user_id)
+            .template(template)
+            .channel(channel)
+            .dispatch()
+            .await
+    }
 }
 `;
+}
+
+function buildNotificationControllerTemplate(): string {
+	return `use crate::notifications::services::notification_service::NotificationService;
+
+pub struct NotificationController {
+    notification_service: NotificationService,
+}
+
+impl NotificationController {
+    pub fn new() -> Self {
+        Self {
+            notification_service: NotificationService::new(),
+        }
+    }
+
+    pub async fn send_notification(
+        &self,
+        user_id: &str,
+        template: &str,
+        channel: &str,
+    ) -> Result<(), midnight_notify_client::Error> {
+        self.notification_service
+            .send(user_id, template, channel)
+            .await
+    }
+}
+`;
+}
+
+async function resolveRustEntrypoint(mainPath: string, libPath: string): Promise<string | undefined> {
+	if (await fileExists(mainPath)) {
+		return mainPath;
 	}
 
-	return `export interface MidnightNotifyConfig {
-  apiKey: string;
-  tenantId: string;
-  baseUrl: string;
-}
+	if (await fileExists(libPath)) {
+		return libPath;
+	}
 
-export const midnightNotifyConfig: MidnightNotifyConfig = {
-  apiKey: process.env.MIDNIGHT_NOTIFY_API_KEY ?? '',
-  tenantId: process.env.MIDNIGHT_NOTIFY_TENANT_ID ?? '',
-  baseUrl: process.env.MIDNIGHT_NOTIFY_BASE_URL ?? 'https://api.midnight-notify.dev',
-};
-
-export function createMidnightNotifyHeaders(): Record<string, string> {
-  return {
-    authorization: \`Bearer \${midnightNotifyConfig.apiKey}\`,
-    'x-tenant-id': midnightNotifyConfig.tenantId,
-  };
-}
-`;
+	return undefined;
 }
 
 async function fileExists(targetPath: string): Promise<boolean> {
