@@ -7,7 +7,7 @@ import { generateLaunchConfiguration, initializeGitRepository } from './commands
 import { classifyHeartbeatResult, runInitialConnectionSequence } from './connection-manager';
 import { createEnvDiagnosticCollection, EnvCodeActionProvider, provideEnvHover, updateEnvDiagnostics } from './env-support';
 import { getModuleGraphWebviewHtml, scanWorkspaceModuleGraph } from './module-graph';
-import { classifyDbStatusOutput, fileExists, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from './nestforge-core';
+import { classifyDbStatusOutput, fileExists, findModuleCandidatesInWorkspace, isManagedNestForgeWorkspace, NESTFORGE_COMMANDS } from './nestforge-core';
 import { registerOnboarding } from './onboarding';
 import { setupMidnightNotify } from './scaffold-integrations';
 
@@ -258,6 +258,10 @@ class NestForgeExtension {
 			return;
 		}
 
+		if (!await this.ensureManagedWorkspace(workspacePath, 'generate files')) {
+			return;
+		}
+
 		const contextModule = await this.findModuleNameForUri(uri, workspacePath);
 
 		const category = await vscode.window.showQuickPick(
@@ -339,6 +343,10 @@ class NestForgeExtension {
 	private async runDbCommand(subcommand: 'init' | 'generate' | 'migrate'): Promise<void> {
 		const workspacePath = this.getWorkspacePath();
 		if (!workspacePath) {
+			return;
+		}
+
+		if (subcommand !== 'init' && !await this.ensureManagedWorkspace(workspacePath, `run nestforge db ${subcommand}`)) {
 			return;
 		}
 
@@ -561,6 +569,16 @@ class NestForgeExtension {
 			return;
 		}
 
+		if (!await isManagedNestForgeWorkspace(workspacePath)) {
+			this.dbStatusInitialized = true;
+			this.setDbStatus({
+				kind: 'unknown',
+				text: 'NestForge: Ready',
+				tooltip: 'Run `nestforge init` or open a managed NestForge workspace to enable DB status checks.',
+			});
+			return;
+		}
+
 		const result = await runInitialConnectionSequence({
 			timeoutMs: this.getConnectionTimeoutMs(),
 			heartbeat: (timeoutMs) => this.readDbStatusKind(workspacePath, timeoutMs),
@@ -735,6 +753,17 @@ class NestForgeExtension {
 
 	private async refreshEnvDiagnostics(document: vscode.TextDocument): Promise<void> {
 		await updateEnvDiagnostics(this.envDiagnostics, document);
+	}
+
+	private async ensureManagedWorkspace(workspacePath: string, action: string): Promise<boolean> {
+		if (await isManagedNestForgeWorkspace(workspacePath)) {
+			return true;
+		}
+
+		void vscode.window.showWarningMessage(
+			`NestForge cannot ${action} in this workspace until it has been initialized. Run \`nestforge init\` first or use NestForge: New Application.`,
+		);
+		return false;
 	}
 
 	private async pickTargetModule(workspacePath: string): Promise<string | undefined> {

@@ -83,6 +83,21 @@ export async function fileExists(targetPath: string): Promise<boolean> {
 	}
 }
 
+export async function isManagedNestForgeWorkspace(workspacePath: string): Promise<boolean> {
+	const markerPaths = [
+		path.join(workspacePath, 'nestforge.toml'),
+		path.join(workspacePath, '.nestforge'),
+	];
+
+	for (const markerPath of markerPaths) {
+		if (await fileExists(markerPath)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 export async function findModuleCandidatesInWorkspace(workspacePath: string): Promise<string[]> {
 	const sourceRoot = path.join(workspacePath, 'src');
 	const root = await fileExists(sourceRoot) ? sourceRoot : workspacePath;

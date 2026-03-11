@@ -15,7 +15,13 @@ import {
 	upsertLaunchConfiguration,
 } from '../launch-support';
 import { scanWorkspaceModuleGraph } from '../module-graph';
-import { buildCliArgs, classifyDbStatusOutput, findModuleCandidatesInWorkspace, NESTFORGE_COMMANDS } from '../nestforge-core';
+import {
+	buildCliArgs,
+	classifyDbStatusOutput,
+	findModuleCandidatesInWorkspace,
+	isManagedNestForgeWorkspace,
+	NESTFORGE_COMMANDS,
+} from '../nestforge-core';
 import { injectCargoDependency, injectNotificationsModuleIntoRustEntrypoint, setupMidnightNotify } from '../scaffold-integrations';
 
 test('buildCliArgs expands booleans, scalars, arrays, and skips falsy flags', () => {
@@ -310,6 +316,23 @@ test('findModuleCandidatesInWorkspace prefers src and returns sorted unique cand
 test('findModuleCandidatesInWorkspace returns an empty list for missing roots', async () => {
 	const missingPath = path.join(os.tmpdir(), `nestforge-missing-${Date.now()}`);
 	assert.deepEqual(await findModuleCandidatesInWorkspace(missingPath), []);
+});
+
+test('isManagedNestForgeWorkspace requires a NestForge marker file or directory', async () => {
+	const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'nestforge-workspace-marker-'));
+
+	try {
+		assert.equal(await isManagedNestForgeWorkspace(tempRoot), false);
+
+		await fs.writeFile(path.join(tempRoot, 'nestforge.toml'), 'workspace = true\n');
+		assert.equal(await isManagedNestForgeWorkspace(tempRoot), true);
+
+		await fs.rm(path.join(tempRoot, 'nestforge.toml'), { force: true });
+		await fs.mkdir(path.join(tempRoot, '.nestforge'));
+		assert.equal(await isManagedNestForgeWorkspace(tempRoot), true);
+	} finally {
+		await fs.rm(tempRoot, { recursive: true, force: true });
+	}
 });
 
 test('declared command definitions cover the expected command ids', () => {

@@ -1,6 +1,6 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { fileExists } from './nestforge-core';
+import { fileExists, isManagedNestForgeWorkspace } from './nestforge-core';
 
 export type TransportKind = 'http' | 'grpc';
 
@@ -74,7 +74,7 @@ const TRANSPORT_DETECTORS: Record<TransportKind, string[]> = {
 };
 
 export async function isNestForgeWorkspace(workspacePath: string): Promise<boolean> {
-	return fileExists(path.join(workspacePath, 'Cargo.toml'));
+	return isManagedNestForgeWorkspace(workspacePath);
 }
 
 export async function resolveEnvSchema(workspacePath: string): Promise<EnvSchema> {
