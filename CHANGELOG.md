@@ -2,6 +2,13 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.7.1](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.7.0...nestforge-v0.7.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* blocked auto project initialization for nestforge, fixes [#19](https://github.com/vernonthedev/nestforge-extension/issues/19) ([a4b828a](https://github.com/vernonthedev/nestforge-extension/commit/a4b828aed0042ba6c0b7e72481d07077e9f673a5))
+
 ## [0.7.0](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.6.1...nestforge-v0.7.0) (2026-03-10)
 
 
