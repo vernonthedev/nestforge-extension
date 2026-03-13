@@ -158,7 +158,7 @@ class NestForgeExtension {
 		);
 
 		this.statusBar.show();
-		this.configureDbStatusPolling();
+		void this.configureDbStatusPolling();
 		void this.refreshWorkspaceEnvDiagnostics();
 	}
 
@@ -405,11 +405,13 @@ class NestForgeExtension {
 
 		const workspacePath = this.getPrimaryWorkspacePath();
 		if (!workspacePath || !this.isDbStatusEnabled()) {
-			this.setDbStatus({
-				kind: 'unknown',
-				text: 'NestForge: Ready',
-				tooltip: 'Open a workspace folder and enable DB status checks to monitor database state.',
-			});
+			this.statusBar.hide();
+			return;
+		}
+
+		// Do not run or show DB status when not a managed NestForge workspace
+		if (!await isManagedNestForgeWorkspace(workspacePath)) {
+			this.statusBar.hide();
 			return;
 		}
 
@@ -520,14 +522,22 @@ class NestForgeExtension {
 		this.moduleGraphPanel.reveal(vscode.ViewColumn.Beside);
 	}
 
-	private configureDbStatusPolling(): void {
+	private async configureDbStatusPolling(): Promise<void> {
 		if (this.dbStatusTimer) {
 			clearInterval(this.dbStatusTimer);
 			this.dbStatusTimer = undefined;
 		}
 
-		if (!this.isDbStatusEnabled()) {
+		const workspacePath = this.getPrimaryWorkspacePath();
+		if (!this.isDbStatusEnabled() || !workspacePath) {
 			this.statusBar.hide();
+			return;
+		}
+
+		// Only enable DB status in managed NestForge workspaces
+		if (!await isManagedNestForgeWorkspace(workspacePath)) {
+			this.statusBar.hide();
+			this.dbStatusInitialized = false;
 			return;
 		}
 
@@ -570,21 +580,13 @@ class NestForgeExtension {
 		const workspacePath = this.getPrimaryWorkspacePath();
 		if (!workspacePath || !this.isDbStatusEnabled()) {
 			this.dbStatusInitialized = true;
-			this.setDbStatus({
-				kind: 'unknown',
-				text: 'NestForge: Ready',
-				tooltip: 'Open a workspace folder and enable DB status checks to monitor database state.',
-			});
+			this.statusBar.hide();
 			return;
 		}
 
 		if (!await isManagedNestForgeWorkspace(workspacePath)) {
 			this.dbStatusInitialized = true;
-			this.setDbStatus({
-				kind: 'unknown',
-				text: 'NestForge: Ready',
-				tooltip: 'Run `nestforge init` or open a managed NestForge workspace to enable DB status checks.',
-			});
+			this.statusBar.hide();
 			return;
 		}
 
