@@ -90,6 +90,7 @@ class NestForgeExtension {
 	private dbStatusTimer: NodeJS.Timeout | undefined;
 	private dbStatusRunning = false;
 	private dbStatusInitialized = false;
+	private dbStatusEverSucceeded = false;
 	private dbStatusInitialization: Promise<void> | undefined;
 
 	public constructor(private readonly context: vscode.ExtensionContext) {
@@ -417,11 +418,19 @@ class NestForgeExtension {
 			const statusKind = await this.readDbStatusKind(workspacePath, this.getConnectionTimeoutMs());
 			this.applyDbStatusKind(statusKind, notifyOnSuccess);
 		} catch (error) {
-			this.setDbStatus({
-				kind: 'error',
-				text: 'NestForge: DB Error',
-				tooltip: 'Database status check failed. Click to retry after verifying local services are running.',
-			});
+			if (!this.dbStatusEverSucceeded) {
+				this.setDbStatus({
+					kind: 'unknown',
+					text: 'NestForge: Pending',
+					tooltip: 'Waiting for environment variables and database services to become available.',
+				});
+			} else {
+				this.setDbStatus({
+					kind: 'error',
+					text: 'NestForge: DB Error',
+					tooltip: 'Database status check failed. Click to retry after verifying local services are running.',
+				});
+			}
 			if (notifyOnSuccess) {
 				vscode.window.showErrorMessage(error instanceof Error ? error.message : 'Database status check failed.');
 			}
@@ -592,9 +601,9 @@ class NestForgeExtension {
 
 		this.dbStatusInitialized = true;
 		this.setDbStatus({
-			kind: 'error',
-			text: 'NestForge: DB Error',
-			tooltip: 'NestForge could not verify database connectivity after multiple startup attempts.',
+			kind: 'unknown',
+			text: 'NestForge: Pending',
+			tooltip: 'Waiting for environment variables and database services to become available.',
 		});
 	}
 
@@ -627,6 +636,7 @@ class NestForgeExtension {
 					'NestForge found unapplied or conflicting database changes. Open NestForge Logs for details.',
 				);
 			}
+			this.dbStatusEverSucceeded = true;
 			return;
 		}
 
@@ -639,6 +649,7 @@ class NestForgeExtension {
 			if (notifyOnSuccess) {
 				void vscode.window.showInformationMessage('NestForge database is connected. Pending migrations are available.');
 			}
+			this.dbStatusEverSucceeded = true;
 			return;
 		}
 
@@ -651,6 +662,7 @@ class NestForgeExtension {
 			if (notifyOnSuccess) {
 				void vscode.window.showInformationMessage('NestForge database is in sync.');
 			}
+			this.dbStatusEverSucceeded = true;
 			return;
 		}
 
