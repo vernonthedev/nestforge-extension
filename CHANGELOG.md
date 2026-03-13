@@ -2,6 +2,14 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.7.2](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.7.1...nestforge-v0.7.2) (2026-03-13)
+
+
+### Bug Fixes
+
+* **status:** hidden the icon statuses from displaying whenever outside a nestforge project ([019d28b](https://github.com/vernonthedev/nestforge-extension/commit/019d28b802dabf7d72b0becc0b195dfe128fa379))
+* updated db statuses preventing that red db status bug, fixes [#21](https://github.com/vernonthedev/nestforge-extension/issues/21) ([bdca368](https://github.com/vernonthedev/nestforge-extension/commit/bdca368292974e4463c17791ae73eecb77ab1fcc))
+
 ## [0.7.1](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.7.0...nestforge-v0.7.1) (2026-03-11)
 
 
