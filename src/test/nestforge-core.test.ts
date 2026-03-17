@@ -346,6 +346,7 @@ test('declared command definitions cover the expected command ids', () => {
 			'nestforge.dbMigrate',
 			'nestforge.dbStatus',
 			'nestforge.docs',
+			'nestforge.exportDocs',
 			'nestforge.formatRust',
 			'nestforge.generateLaunchConfig',
 			'nestforge.initGit',

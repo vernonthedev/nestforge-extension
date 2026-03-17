@@ -51,11 +51,13 @@ Available transport values:
 Run `NestForge: Generate` to open a nested QuickPick workflow:
 
 1. Choose a category: `Core`, `Cross-Cutting`, or `Transport`.
-2. Choose a generator such as `Resource`, `Interceptor`, `Service`, or `Gateway`.
+2. Choose a generator such as `Resource`, `Interceptor`, `Service`, `Gateway`, `GraphQL`, or `gRPC`.
 3. Enter the resource name.
-4. If required, select the target module.
+4. Choose between nested or flat file layout (nested keeps controllers/services/DTOs in separate folders, flat places them side-by-side).
+5. For Resource generators, choose between interactive (prompts for DTO fields) or non-interactive mode.
+6. If required, select the target module.
 
-The extension then runs the matching `nestforge g ...` command and refreshes the File Explorer so generated files appear immediately.
+The extension then runs the matching `nestforge g ...` command with appropriate `--flat` and `--no-prompt` flags, then refreshes the File Explorer so generated files appear immediately.
 
 ### Explorer Context Menus
 
@@ -89,6 +91,7 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 ### Utilities
 
 - `NestForge: OpenAPI Docs` opens the configured docs URL.
+- `NestForge: Export OpenAPI Spec` exports the OpenAPI specification to JSON or YAML file.
 - `NestForge: Format Rust` runs `cargo fmt`.
 - `NestForge: Generate Run Config` creates `.vscode/launch.json` and a matching `cargo build` task for the current Rust project.
 - `NestForge: Initialize Git Repository` bootstraps Git, ensures `/target` is ignored, and attempts the initial scaffold commit.
@@ -98,7 +101,8 @@ Database status is also surfaced in the status bar. The extension can poll `nest
 ### Rust Snippets
 
 - The extension contributes Rust snippets for common NestForge patterns.
-- Use prefixes such as `nf-controller`, `nf-service`, `nf-guard`, `nf-interceptor`, `nf-middleware`, and `nf-response` to expand generic documented stubs with tab-stop placeholders.
+- Use prefixes such as `nf-controller`, `nf-injectable`, `nf-module`, `nf-guard`, `nf-auth-guard`, `nf-role-guard`, `nf-interceptor`, `nf-middleware`, `nf-dto`, and `nf-factory` to expand documented stubs with tab-stop placeholders.
+- The snippets use NestForge's macro system (`#[injectable]`, `#[controller]`, `#[dto]`, `guard!`, `auth_guard!`, etc.) instead of manual derives.
 - The snippets do not force a `notifications` naming scheme. The `notifications` module name is only used by the dedicated Midnight Notify integration scaffold.
 
 ### Ecosystem Integrations
@@ -143,6 +147,7 @@ The extension includes a getting-started walkthrough that links directly to:
 - `NestForge: New Application`
 - `NestForge: Generate`
 - `NestForge: OpenAPI Docs`
+- `NestForge: Export OpenAPI Spec`
 - `NestForge: Format Rust`
 - `NestForge: Generate Run Config`
 - `NestForge: Initialize Git Repository`

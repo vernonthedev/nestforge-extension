@@ -116,51 +116,42 @@ function buildConfigModuleTemplate(): string {
 }
 
 function buildNotificationConfigTemplate(): string {
-	return `use std::env;
+	return `use nestforge::{injectable, ConfigModule, ConfigOptions};
 
-#[derive(Debug, Clone)]
+#[injectable(factory = load_midnight_notify_config)]
 pub struct MidnightNotifyConfig {
     pub api_key: String,
     pub tenant_id: String,
     pub base_url: String,
 }
 
-impl MidnightNotifyConfig {
-    pub fn from_env() -> Self {
-        Self {
-            api_key: env::var("MIDNIGHT_NOTIFY_API_KEY")
-                .expect("MIDNIGHT_NOTIFY_API_KEY must be set"),
-            tenant_id: env::var("MIDNIGHT_NOTIFY_TENANT_ID")
-                .expect("MIDNIGHT_NOTIFY_TENANT_ID must be set"),
-            base_url: env::var("MIDNIGHT_NOTIFY_BASE_URL")
-                .unwrap_or_else(|_| "https://api.midnight-notify.dev".to_string()),
-        }
-    }
+fn load_midnight_notify_config() -> anyhow::Result<MidnightNotifyConfig> {
+    Ok(ConfigModule::for_root::<MidnightNotifyConfig>(
+        ConfigOptions::new()
+            .env_file(".env")
+            .schema(|s| {
+                s.add_field("MIDNIGHT_NOTIFY_API_KEY", true);
+                s.add_field("MIDNIGHT_NOTIFY_TENANT_ID", true);
+                s.add_field("MIDNIGHT_NOTIFY_BASE_URL", false);
+            }),
+    )?)
 }
 `;
 }
 
 function buildNotificationServiceTemplate(): string {
-	return `use midnight_notify_client::Client;
+	return `use nestforge::injectable;
+use midnight_notify_client::Client;
 
 use crate::notifications::config::notification_config::MidnightNotifyConfig;
 
+#[injectable]
 pub struct NotificationService {
     client: Client,
+    config: MidnightNotifyConfig,
 }
 
 impl NotificationService {
-    pub fn new() -> Self {
-        let config = MidnightNotifyConfig::from_env();
-        let client = Client::builder()
-            .api_key(config.api_key)
-            .tenant_id(config.tenant_id)
-            .base_url(config.base_url)
-            .build();
-
-        Self { client }
-    }
-
     pub async fn send(
         &self,
         user_id: &str,
@@ -180,29 +171,36 @@ impl NotificationService {
 }
 
 function buildNotificationControllerTemplate(): string {
-	return `use crate::notifications::services::notification_service::NotificationService;
+	return `use nestforge::{controller, post, routes, HttpException, Inject, Body, dto};
 
-pub struct NotificationController {
-    notification_service: NotificationService,
+use crate::notifications::services::notification_service::NotificationService;
+
+pub struct NotificationController;
+
+#[controller("/notifications")]
+#[routes]
+impl NotificationController {
+    #[post("/send")]
+    pub async fn send(
+        &self,
+        body: Body<SendNotificationRequest>,
+        service: Inject<NotificationService>,
+    ) -> Result<SendNotificationResponse, HttpException> {
+        service.send(&body.user_id, &body.template, &body.channel).await?;
+        Ok(SendNotificationResponse { success: true })
+    }
 }
 
-impl NotificationController {
-    pub fn new() -> Self {
-        Self {
-            notification_service: NotificationService::new(),
-        }
-    }
+#[dto]
+pub struct SendNotificationRequest {
+    pub user_id: String,
+    pub template: String,
+    pub channel: String,
+}
 
-    pub async fn send_notification(
-        &self,
-        user_id: &str,
-        template: &str,
-        channel: &str,
-    ) -> Result<(), midnight_notify_client::Error> {
-        self.notification_service
-            .send(user_id, template, channel)
-            .await
-    }
+#[response_dto]
+pub struct SendNotificationResponse {
+    pub success: bool,
 }
 `;
 }

@@ -39,6 +39,8 @@ const GENERATORS: GeneratorDefinition[] = [
 	{ label: 'Resource', detail: 'Generate a full resource and wire it into a module.', command: 'resource', category: 'Core', needsModule: true },
 	{ label: 'Controller', detail: 'Generate a transport controller.', command: 'controller', category: 'Transport', needsModule: true },
 	{ label: 'Resolver', detail: 'Generate a GraphQL resolver.', command: 'resolver', category: 'Transport', needsModule: true },
+	{ label: 'GraphQL', detail: 'Generate a GraphQL schema and resolver.', command: 'graphql', category: 'Transport', needsModule: true },
+	{ label: 'gRPC', detail: 'Generate a gRPC service definition.', command: 'grpc', category: 'Transport', needsModule: true },
 	{ label: 'Gateway', detail: 'Generate a WebSocket gateway.', command: 'gateway', category: 'Transport', needsModule: true },
 	{ label: 'Guard', detail: 'Generate an authorization guard.', command: 'guard', category: 'Cross-Cutting', needsModule: false },
 	{ label: 'Interceptor', detail: 'Generate a request/response interceptor.', command: 'interceptor', category: 'Cross-Cutting', needsModule: false },
@@ -119,6 +121,7 @@ class NestForgeExtension {
 			vscode.commands.registerCommand('nestforge.dbMigrate', () => this.runDbCommand('migrate')),
 			vscode.commands.registerCommand('nestforge.dbStatus', () => this.updateDbStatus(true)),
 			vscode.commands.registerCommand('nestforge.docs', () => this.openDocs()),
+			vscode.commands.registerCommand('nestforge.exportDocs', () => this.exportDocs()),
 			vscode.commands.registerCommand('nestforge.formatRust', () => this.formatRust()),
 			vscode.commands.registerCommand('nestforge.generateLaunchConfig', () => this.generateRunnerConfig()),
 			vscode.commands.registerCommand('nestforge.initGit', () => this.initGitRepository()),
@@ -326,8 +329,44 @@ class NestForgeExtension {
 			}
 		}
 
+		const useFlatLayout = await vscode.window.showQuickPick(
+			[
+				{ label: 'Nested layout (default)', description: 'Controllers, services, and DTOs in separate folders', picked: true },
+				{ label: 'Flat layout', description: 'All files side-by-side in the module root', picked: false },
+			],
+			{
+				ignoreFocusOut: true,
+				placeHolder: 'Choose the file layout for this feature',
+			},
+		);
+
+		const useNoPrompt = generator.label === 'Resource'
+			? await vscode.window.showQuickPick(
+				[
+					{ label: 'Interactive (prompt for fields)', description: 'CLI will prompt for DTO fields', picked: true },
+					{ label: 'Non-interactive', description: 'Skip prompts and use defaults', picked: false },
+				],
+				{
+					ignoreFocusOut: true,
+					placeHolder: 'Choose CLI interaction mode',
+				},
+			)
+			: undefined;
+
 		const args = ['g', generator.command, name.trim()];
-		const flags = moduleName ? { module: moduleName } : undefined;
+		const flags: Record<string, boolean | string> = {};
+
+		if (moduleName) {
+			flags.module = moduleName;
+		}
+
+		if (useFlatLayout?.label === 'Flat layout') {
+			flags.flat = true;
+		}
+
+		if (useNoPrompt?.label === 'Non-interactive') {
+			flags['no-prompt'] = true;
+		}
 
 		await this.executeNestForge(
 			{ args, flags },
@@ -444,6 +483,51 @@ class NestForgeExtension {
 	private async openDocs(): Promise<void> {
 		const docsUrl = vscode.workspace.getConfiguration('nestforge').get<string>('docsUrl', 'http://localhost:3000/api/docs');
 		await vscode.env.openExternal(vscode.Uri.parse(docsUrl));
+	}
+
+	private async exportDocs(): Promise<void> {
+		const workspacePath = this.getWorkspacePath();
+		if (!workspacePath) {
+			return;
+		}
+
+		const format = await vscode.window.showQuickPick(
+			[
+				{ label: 'JSON', description: 'Export OpenAPI spec as JSON', picked: true },
+				{ label: 'YAML', description: 'Export OpenAPI spec as YAML', picked: false },
+			],
+			{
+				ignoreFocusOut: true,
+				placeHolder: 'Select export format',
+			},
+		);
+
+		if (!format) {
+			return;
+		}
+
+		const outputPath = await vscode.window.showInputBox({
+			prompt: 'Enter output file path',
+			ignoreFocusOut: true,
+			value: format.label === 'YAML' ? 'docs/openapi.yaml' : 'docs/openapi.json',
+			validateInput: (value) => value.trim() ? undefined : 'Output path is required.',
+		});
+
+		if (!outputPath) {
+			return;
+		}
+
+		await this.executeNestForge(
+			{
+				args: ['export-docs', '--format', format.label.toLowerCase(), '--output', outputPath.trim()],
+			},
+			{
+				cwd: workspacePath,
+				progressTitle: 'Exporting OpenAPI specification...',
+				showSuccessMessage: `OpenAPI spec exported to ${outputPath.trim()}`,
+				refreshExplorer: true,
+			},
+		);
 	}
 
 	private async formatRust(): Promise<void> {

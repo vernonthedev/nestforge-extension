@@ -1,9 +1,9 @@
 {
   "NestForge Controller": {
     "prefix": "nf-controller",
-    "description": "Create a documented NestForge controller struct and handler methods.",
+    "description": "Create a NestForge controller with routes.",
     "body": [
-      "use nestforge::{controller, get, post, routes, Body, HttpException, Inject};",
+      "use nestforge::{controller, get, post, put, delete, routes, Body, HttpException, Inject};",
       "",
       "/// ${1:Handles requests for the feature resource.}",
       "pub struct ${2:FeatureController};",
@@ -11,130 +11,370 @@
       "#[controller(\"/${3:feature}\")]",
       "#[routes]",
       "impl ${2:FeatureController} {",
-      "    /// ${4:Return a collection response for the feature resource.}",
+      "    /// ${4:List all resources.}",
       "    #[get(\"/\")]",
       "    pub async fn ${5:list}(",
       "        &self,",
-      "        service: Inject<${6:FeatureService}>,",
-      "    ) -> Result<${7:FeatureListResponse}, HttpException> {",
-      "        let _ = service;",
+      "        _users: Inject<${6:FeatureService}>,",
+      "    ) -> Result<${7:Vec<FeatureResponse>}, HttpException> {",
       "        ${8:todo!()}",
       "    }",
       "",
-      "    /// ${9:Create a new feature resource from the request body.}",
+      "    /// ${9:Create a new resource.}",
       "    #[post(\"/\")]",
       "    pub async fn ${10:create}(",
       "        &self,",
       "        body: Body<${11:CreateFeatureRequest}>,",
-      "        service: Inject<${6:FeatureService}>,",
+      "        _service: Inject<${6:FeatureService}>,",
       "    ) -> Result<${12:FeatureResponse}, HttpException> {",
-      "        let _ = (body, service);",
+      "        let _ = body;",
+      "        ${13:todo!()}",
+      "    }",
+      "",
+      "    /// ${14:Get a resource by ID.}",
+      "    #[get(\"/${15:id}\")]",
+      "    pub async fn ${16:get}(",
+      "        &self,",
+      "        _id: ${17:u64},",
+      "        _service: Inject<${6:FeatureService}>,",
+      "    ) -> Result<${18:FeatureResponse}, HttpException> {",
+      "        ${19:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Injectable Service": {
+    "prefix": "nf-injectable",
+    "description": "Create a managed injectable service using #[injectable] macro.",
+    "body": [
+      "use nestforge::injectable;",
+      "",
+      "/// ${1:Service managed by NestForge DI container.}",
+      "#[injectable]",
+      "pub struct ${2:FeatureService};",
+      "",
+      "impl ${2:FeatureService} {",
+      "    /// ${3:Perform the service operation.}",
+      "    pub async fn ${4:do_something}(&self) -> Result<String, HttpException> {",
+      "        ${5:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Injectable with Factory": {
+    "prefix": "nf-injectable-factory",
+    "description": "Create an injectable service with custom factory initialization.",
+    "body": [
+      "use nestforge::{injectable, ConfigModule, ConfigOptions};",
+      "",
+      "/// ${1:Service with custom factory for external configuration.}",
+      "#[injectable(factory = ${2:build_config})]",
+      "pub struct ${3:AppConfig} {",
+      "    pub app_name: String,",
+      "}",
+      "",
+      "fn ${2:build_config}() -> anyhow::Result<${3:AppConfig}> {",
+      "    Ok(ConfigModule::for_root::<${3:AppConfig}>(",
+      "        ConfigOptions::new().env_file(\".env\"),",
+      "    )?)",
+      "}"
+    ]
+  },
+  "NestForge Module": {
+    "prefix": "nf-module",
+    "description": "Create a NestForge module definition.",
+    "body": [
+      "use nestforge::module;",
+      "",
+      "/// ${1:Feature module that groups related providers and controllers.}",
+      "#[module(",
+      "    providers = [${2:FeatureService}],",
+      "    exports = [${2:FeatureService}]",
+      ")]",
+      "pub struct ${3:FeatureModule};"
+    ]
+  },
+  "NestForge Guard (Macro)": {
+    "prefix": "nf-guard",
+    "description": "Create a guard using the guard! macro with inline logic.",
+    "body": [
+      "use nestforge::guard;",
+      "",
+      "guard!(${1:AuthGuard} |ctx| {",
+      "    if ctx.is_authenticated() {",
+      "        Ok(())",
+      "    } else {",
+      "        Err(nestforge::HttpException::unauthorized(\"Authentication required\"))",
+      "    }",
+      "});"
+    ]
+  },
+  "NestForge Auth Guard": {
+    "prefix": "nf-auth-guard",
+    "description": "Create an auth guard that requires authentication using auth_guard! macro.",
+    "body": [
+      "use nestforge::auth_guard;",
+      "",
+      "auth_guard!(${1:RequireAuthGuard});"
+    ]
+  },
+  "NestForge Role Guard": {
+    "prefix": "nf-role-guard",
+    "description": "Create a role-based guard using the role_guard! macro.",
+    "body": [
+      "use nestforge::role_guard;",
+      "",
+      "role_guard!(${1:AdminGuard}, \"${2:admin}\");"
+    ]
+  },
+  "NestForge Interceptor (Macro)": {
+    "prefix": "nf-interceptor",
+    "description": "Create an interceptor using the interceptor! macro.",
+    "body": [
+      "use nestforge::interceptor;",
+      "",
+      "interceptor!(${1:LoggingInterceptor});"
+    ]
+  },
+  "NestForge Middleware (Macro)": {
+    "prefix": "nf-middleware",
+    "description": "Create middleware using the middleware! macro.",
+    "body": [
+      "use nestforge::middleware;",
+      "",
+      "middleware!(${1:RequestLogger});"
+    ]
+  },
+  "NestForge Route with Guard": {
+    "prefix": "nf-guarded-route",
+    "description": "Create a controller route with guard usage.",
+    "body": [
+      "use nestforge::{controller, get, routes, HttpException, Inject, use_guard};",
+      "",
+      "pub struct ${1:FeatureController};",
+      "",
+      "#[controller(\"/${2:feature}\")]",
+      "#[routes]",
+      "impl ${1:FeatureController} {",
+      "    #[get(\"/\")]",
+      "    #[use_guard(${3:AuthGuard})]",
+      "    pub async fn ${4:list}(",
+      "        &self,",
+      "        _service: Inject<${5:FeatureService}>,",
+      "    ) -> Result<${6:Vec<Response>}, HttpException> {",
+      "        ${7:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Route with Interceptor": {
+    "prefix": "nf-intercepted-route",
+    "description": "Create a controller route with interceptor usage.",
+    "body": [
+      "use nestforge::{controller, get, routes, HttpException, Inject, use_interceptor};",
+      "",
+      "pub struct ${1:FeatureController};",
+      "",
+      "#[controller(\"/${2:feature}\")]",
+      "#[routes]",
+      "impl ${1:FeatureController} {",
+      "    #[get(\"/\")]",
+      "    #[use_interceptor(${3:LoggingInterceptor})]",
+      "    pub async fn ${4:list}(",
+      "        &self,",
+      "        _service: Inject<${5:FeatureService}>,",
+      "    ) -> Result<${6:Vec<Response>}, HttpException> {",
+      "        ${7:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Authenticated Route": {
+    "prefix": "nf-authenticated",
+    "description": "Create an authenticated route using #[authenticated] attribute.",
+    "body": [
+      "use nestforge::{controller, get, routes, authenticated, HttpException, Inject};",
+      "",
+      "pub struct ${1:FeatureController};",
+      "",
+      "#[controller(\"/${2:feature}\")]",
+      "#[routes]",
+      "impl ${1:FeatureController} {",
+      "    #[get(\"/\")]",
+      "    #[authenticated]",
+      "    pub async fn ${3:list}(",
+      "        &self,",
+      "        _service: Inject<${4:FeatureService}>,",
+      "    ) -> Result<${5:Vec<Response>}, HttpException> {",
+      "        ${6:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Role-protected Route": {
+    "prefix": "nf-roles",
+    "description": "Create a route protected by roles using #[roles] attribute.",
+    "body": [
+      "use nestforge::{controller, get, routes, roles, HttpException, Inject};",
+      "",
+      "pub struct ${1:FeatureController};",
+      "",
+      "#[controller(\"/${2:feature}\")]",
+      "#[routes]",
+      "impl ${1:FeatureController} {",
+      "    #[get(\"/\")]",
+      "    #[roles(\"${3:admin}\", \"${4:moderator}\")]",
+      "    pub async fn ${5:admin_list}(",
+      "        &self,",
+      "        _service: Inject<${6:FeatureService}>,",
+      "    ) -> Result<${7:Vec<Response>}, HttpException> {",
       "        ${8:todo!()}",
       "    }",
       "}"
     ]
   },
-  "NestForge Service": {
-    "prefix": "nf-service",
-    "description": "Create a thread-safe NestForge service stub backed by Arc.",
+  "NestForge Versioned Route": {
+    "prefix": "nf-versioned",
+    "description": "Create a versioned route using #[version] attribute.",
     "body": [
-      "use std::sync::Arc;",
+      "use nestforge::{controller, get, routes, version, HttpException, Inject};",
       "",
-      "/// ${1:Coordinates feature-specific business logic behind a thread-safe service boundary.}",
-      "#[derive(Clone)]",
-      "pub struct ${2:FeatureService} {",
-      "    state: Arc<${3:AppState}>,",
-      "}",
+      "pub struct ${1:FeatureController};",
+      "",
+      "#[controller(\"/${2:feature}\")]",
+      "#[routes]",
+      "impl ${1:FeatureController} {",
+      "    #[get(\"/\")]",
+      "    #[version(\"${3:1}\")]",
+      "    pub async fn ${4:get_v1}(",
+      "        &self,",
+      "        _service: Inject<${5:FeatureService}>,",
+      "    ) -> Result<${6:Vec<Response>}, HttpException> {",
+      "        ${7:todo!()}",
+      "    }",
+      "",
+      "    #[get(\"/\")]",
+      "    #[version(\"${8:2}\")]",
+      "    pub async fn ${9:get_v2}(",
+      "        &self,",
+      "        _service: Inject<${5:FeatureService}>,",
+      "    ) -> Result<${10:Vec<ResponseV2>}, HttpException> {",
+      "        ${11:todo!()}",
+      "    }",
+      "}"
+    ]
+  },
+  "NestForge Factory Bootstrap": {
+    "prefix": "nf-factory",
+    "description": "Create the main NestForge application bootstrap with factory.",
+    "body": [
+      "use nestforge::prelude::*;",
+      "",
+      "#[tokio::main]",
+      "async fn main() -> anyhow::Result<()> {",
+      "    NestForgeFactory::<${1:AppModule}>::create()?",
+      "        .with_global_prefix(\"${2:api}\")",
+      "        .with_openapi_docs(\"${3:My API}\", \"${4:1.0.0}\")?",
+      "        .listen(${5:3000})",
+      "        .await?;",
+      "",
+      "    Ok(())",
+      "}"
+    ]
+  },
+  "NestForge DTO": {
+    "prefix": "nf-dto",
+    "description": "Create a DTO using #[dto] macro for OpenAPI schema generation.",
+    "body": [
+      "use nestforge::dto;",
+      "",
+      "/// ${1:Data transfer object for ${2:feature} operations.}",
+      "#[dto]",
+      "pub struct ${3:FeatureDto} {",
+      "    /// ${4:The unique identifier.}",
+      "    pub id: u64,",
+      "    /// ${5:The name of the feature.}",
+      "    pub name: String,",
+      "}"
+    ]
+  },
+  "NestForge Entity DTO": {
+    "prefix": "nf-entity-dto",
+    "description": "Create an entity DTO with identifiable using #[entity_dto] macro.",
+    "body": [
+      "use nestforge::entity_dto;",
+      "",
+      "/// ${1:Entity DTO for database operations.}",
+      "#[entity_dto(table = \"${2:features}\")]",
+      "pub struct ${3:FeatureEntity} {",
+      "    #[id]",
+      "    pub id: u64,",
+      "    pub name: String,",
+      "}"
+    ]
+  },
+  "NestForge Response DTO": {
+    "prefix": "nf-response-dto",
+    "description": "Create a response DTO using #[response_dto] macro.",
+    "body": [
+      "use nestforge::response_dto;",
+      "",
+      "/// ${1:Response DTO for API responses.}",
+      "#[response_dto]",
+      "pub struct ${2:FeatureResponse} {",
+      "    pub id: u64,",
+      "    pub name: String,",
+      "}"
+    ]
+  },
+  "NestForge Full Feature": {
+    "prefix": "nf-feature",
+    "description": "Create a full feature with module, service, and controller.",
+    "body": [
+      "use nestforge::{controller, get, post, dto, injectable, module, Body, HttpException, Inject};",
+      "",
+      "/// ${1:Feature service.}",
+      "#[injectable]",
+      "pub struct ${2:FeatureService};",
       "",
       "impl ${2:FeatureService} {",
-      "    /// ${4:Build the service from shared application state.}",
-      "    pub fn new(state: Arc<${3:AppState}>) -> Self {",
-      "        Self { state }",
+      "    pub async fn create(&self, dto: ${3:CreateFeatureDto}) -> Result<${4:FeatureResponse}, HttpException> {",
+      "        ${5:todo!()}",
       "    }",
       "",
-      "    /// ${5:Execute the main feature workflow with the shared state dependency.}",
-      "    pub async fn ${6:execute}(",
-      "        &self,",
-      "        input: ${7:${2/(.*)Service/$1Input/}},",
-      "    ) -> Result<${8:${2/(.*)Service/$1Output/}}, ${9:AppError}> {",
-      "        let _ = &self.state;",
-      "        ${10:todo!()}",
-      "    }",
-      "}"
-    ]
-  },
-  "NestForge Guard": {
-    "prefix": "nf-guard",
-    "description": "Create a documented guard stub for access control decisions.",
-    "body": [
-      "/// ${1:Enforces access rules before the request reaches the controller.}",
-      "pub struct ${2:AuthGuard};",
-      "",
-      "impl ${2:AuthGuard} {",
-      "    /// ${3:Validate the caller and reject requests that do not satisfy the policy.}",
-      "    pub async fn check(&self, context: &${4:RequestContext}) -> Result<(), ${5:AppError}> {",
-      "        let _ = context;",
+      "    pub async fn find_all(&self) -> Result<Vec<${4:FeatureResponse}>, HttpException> {",
       "        ${6:todo!()}",
       "    }",
-      "}"
-    ]
-  },
-  "NestForge Interceptor": {
-    "prefix": "nf-interceptor",
-    "description": "Create a documented interceptor stub for request and response shaping.",
-    "body": [
-      "/// ${1:Applies cross-cutting behavior around a request lifecycle.}",
-      "pub struct ${2:TracingInterceptor};",
-      "",
-      "impl ${2:TracingInterceptor} {",
-      "    /// ${3:Wrap the next handler to add tracing, metrics, or response shaping.}",
-      "    pub async fn intercept<T>(",
-      "        &self,",
-      "        context: &${4:RequestContext},",
-      "        next: impl std::future::Future<Output = Result<T, ${5:AppError}>>,",
-      "    ) -> Result<T, ${5:AppError}> {",
-      "        let _ = context;",
-      "        next.await",
-      "    }",
-      "}"
-    ]
-  },
-  "NestForge Middleware": {
-    "prefix": "nf-middleware",
-    "description": "Create a documented middleware stub for request preprocessing.",
-    "body": [
-      "/// ${1:Transforms or annotates the request before it reaches the application handler.}",
-      "pub struct ${2:RequestMiddleware};",
-      "",
-      "impl ${2:RequestMiddleware} {",
-      "    /// ${3:Apply middleware-specific preprocessing to the incoming request context.}",
-      "    pub async fn handle(&self, context: &mut ${4:RequestContext}) -> Result<(), ${5:AppError}> {",
-      "        let _ = context;",
-      "        ${6:todo!()}",
-      "    }",
-      "}"
-    ]
-  },
-  "NestForge Type-safe Response": {
-    "prefix": "nf-response",
-    "description": "Create a type-safe response envelope for Rust handlers.",
-    "body": [
-      "/// ${1:Represents a typed API response returned by a NestForge handler.}",
-      "#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]",
-      "pub struct ${2:ApiResponse}<T> {",
-      "    pub success: bool,",
-      "    pub message: String,",
-      "    pub data: T,",
       "}",
       "",
-      "impl<T> ${2:ApiResponse}<T> {",
-      "    /// ${3:Build a success response with a caller-provided payload.}",
-      "    pub fn ok(message: impl Into<String>, data: T) -> Self {",
-      "        Self {",
-      "            success: true,",
-      "            message: message.into(),",
-      "            data,",
-      "        }",
+      "/// ${1:Feature module.}",
+      "#[module(",
+      "    providers = [${2:FeatureService}],",
+      "    exports = [${2:FeatureService}]",
+      ")]",
+      "pub struct ${7:FeatureModule};",
+      "",
+      "/// ${1:Feature controller.}",
+      "pub struct ${8:FeatureController};",
+      "",
+      "#[controller(\"/${9:features}\")]",
+      "#[routes]",
+      "impl ${8:FeatureController} {",
+      "    #[post(\"/\")]",
+      "    pub async fn create(",
+      "        &self,",
+      "        body: Body<${3:CreateFeatureDto}>,",
+      "        service: Inject<${2:FeatureService}>,",
+      "    ) -> Result<${4:FeatureResponse}, HttpException> {",
+      "        service.create(body.0).await",
+      "    }",
+      "",
+      "    #[get(\"/\")]",
+      "    pub async fn list(",
+      "        &self,",
+      "        service: Inject<${2:FeatureService}>,",
+      "    ) -> Result<Vec<${4:FeatureResponse}>, HttpException> {",
+      "        service.find_all().await",
       "    }",
       "}"
     ]

@@ -48,6 +48,7 @@ The debug config uses `dist/**/*.js`, so rebuild or keep `pnpm run watch` runnin
 - `NestForge DB: Migrate`
 - `NestForge DB: Status`
 - `NestForge: OpenAPI Docs`
+- `NestForge: Export OpenAPI Spec`
 - `NestForge: Format Rust`
 - `NestForge: Open Logs`
 
@@ -64,6 +65,7 @@ pnpm run test:hook
 
 - If the Extension Development Host still shows old behavior after changes, stop the current F5 session and start it again.
 - `NestForge: Generate` is the single generator entry point. It is also available from the Explorer folder context menu.
+- The generator wizard now supports choosing between nested and flat file layouts, and for resources, interactive or non-interactive CLI modes.
 - DB status is shown in the status bar when `nestforge.dbStatus.enabled` is `true`.
 - Output from CLI commands is written to the `NestForge Logs` output channel.
 

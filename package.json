@@ -65,6 +65,11 @@
         "category": "NestForge"
       },
       {
+        "command": "nestforge.exportDocs",
+        "title": "Export OpenAPI Spec",
+        "category": "NestForge"
+      },
+      {
         "command": "nestforge.formatRust",
         "title": "Format Rust",
         "category": "NestForge"
