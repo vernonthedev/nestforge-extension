@@ -2,6 +2,13 @@
 
 All notable changes to the "nestforge" extension will be documented in this file.
 
+## [0.7.3](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.7.2...nestforge-v0.7.3) (2026-03-17)
+
+
+### Bug Fixes
+
+* **docs:** updated the nestforge docs to match the latest 1.6.0 framework version updates ([06acadd](https://github.com/vernonthedev/nestforge-extension/commit/06acaddef978e7c0258b990ce325d80dad262511))
+
 ## [0.7.2](https://github.com/vernonthedev/nestforge-extension/compare/nestforge-v0.7.1...nestforge-v0.7.2) (2026-03-13)
 
 
